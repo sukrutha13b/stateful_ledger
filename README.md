@@ -16,7 +16,6 @@ Generative AI models are incredibly capable, but they suffer from three core cha
 **Stateful Ledger** acts as an automated, concurrent audit layer between the AI and the user. It ensures that every response is factually verified and logically aligned with your initial constraints.
 
 ### **Core Business Benefits**
-*   **📉 80% Reduction in Verification Effort:** Human operators no longer need to manually fact-check every response. The system flags discrepancies automatically.
 *   **🤝 High-Legibility Trust:** Instead of treating AI as a "black box," stakeholders are given full visibility into *why* the AI generated a specific answer and *what* sources back it up.
 *   **📜 Session Portability & Compliance Auditing:** Save, export, and load complete session ledgers to maintain a clear audit trail of AI-human interactions.
 *   **⚡ Custom Scorecards:** Automatically generates tailor-made evaluation criteria based on the goal of the conversation.
