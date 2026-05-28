@@ -67,32 +67,32 @@ def inject_gemini_css():
         footer {{visibility: hidden;}}
         .stDeployButton {{visibility: hidden;}}
 
-        /* ── Main App Background ── */
-        .stApp {{
-            background-color: {BASE_BG};
-        }}
+        /* ── Main App Background & Layout ── */
+        .stApp {
+            background-color: #131314;
+        }
 
         /* ── Sidebar ── */
-        section[data-testid="stSidebar"] {{
-            background-color: {SURFACE_LOW};
-            border-right: 1px solid {SURFACE_HIGH};
-        }}
+        section[data-testid="stSidebar"] {
+            background-color: #1E1F20;
+            border-right: 1px solid #282A2C;
+        }
 
-        section[data-testid="stSidebar"] .stMarkdown {{
-            color: {TEXT_PRIMARY};
-        }}
+        section[data-testid="stSidebar"] .stMarkdown {
+            color: #E2E2E2;
+        }
 
         /* ── Chat Input — Pill Shape ── */
-        .stChatInput textarea {{
-            border-radius: {RADIUS_PILL} !important;
-            background-color: {SURFACE_LOW} !important;
-            border: 1px solid {SURFACE_HIGH} !important;
-            color: {TEXT_PRIMARY} !important;
-        }}
+        .stChatInput textarea {
+            border-radius: 50px !important;
+            background-color: #1E1F20 !important;
+            border: 1px solid #282A2C !important;
+            color: #E2E2E2 !important;
+        }
 
-        .stChatInput textarea::placeholder {{
-            color: {TEXT_SECONDARY} !important;
-        }}
+        .stChatInput textarea::placeholder {
+            color: #C4C7C5 !important;
+        }
 
         /* ── Chat Messages ── */
         .stChatMessage {{

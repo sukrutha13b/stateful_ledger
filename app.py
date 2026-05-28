@@ -25,7 +25,7 @@ from utils.id_gen import generate_id
 # ── Page Config ──
 st.set_page_config(
     page_title="Stateful Ledger",
-    layout="wide",
+    layout="centered",
 )
 
 # Insert the Gemini Design CSS
@@ -56,9 +56,6 @@ else:
     col_main, col_dash = st.columns([2.5, 1], gap="large")
 
 with col_main:
-    st.title("Stateful Ledger")
-    st.caption("Dual-layer verification engine for AI-generated responses")
-
     # Render chat history
     render_chat_history(st.session_state["messages"], ledger)
 
