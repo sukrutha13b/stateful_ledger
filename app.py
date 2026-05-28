@@ -26,6 +26,7 @@ from utils.id_gen import generate_id
 st.set_page_config(
     page_title="Stateful Ledger",
     layout="centered",
+    initial_sidebar_state="expanded",
 )
 
 # Insert the Gemini Design CSS

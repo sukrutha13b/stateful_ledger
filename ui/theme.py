@@ -72,26 +72,71 @@ def inject_gemini_css():
             background-color: #131314;
         }}
 
-        /* ── Sidebar ── */
+        /* ── Sidebar — always visible, collapsible ── */
         section[data-testid="stSidebar"] {{
-            background-color: #1E1F20;
-            border-right: 1px solid #282A2C;
+            background-color: #1E1F20 !important;
+            border-right: 1px solid #282A2C !important;
+            min-width: 260px !important;
+        }}
+
+        /* Ensure the sidebar collapse toggle button is always visible */
+        [data-testid="collapsedControl"] {{
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }}
+
+        /* Sidebar toggle arrow button */
+        button[kind="header"] {{
+            display: flex !important;
+            visibility: visible !important;
         }}
 
         section[data-testid="stSidebar"] .stMarkdown {{
             color: #E2E2E2;
         }}
 
-        /* ── Chat Input — Pill Shape ── */
-        .stChatInput textarea {{
-            border-radius: 50px !important;
+        /* ── Chat Input — Centered Pill Shape ── */
+        /* Outer wrapper: center the entire chat input bar */
+        [data-testid="stChatInput"] {{
+            max-width: 720px !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+        }}
+
+        /* The inner container holding the textarea + button */
+        [data-testid="stChatInput"] > div {{
+            border-radius: 28px !important;
             background-color: #1E1F20 !important;
-            border: 1px solid #282A2C !important;
+            border: 1px solid #3C4043 !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }}
+
+        /* The textarea itself */
+        .stChatInput textarea {{
+            border-radius: 28px !important;
+            background-color: #1E1F20 !important;
+            border: none !important;
             color: #E2E2E2 !important;
+            padding: 14px 56px 14px 20px !important;
+            min-height: 52px !important;
+            line-height: 1.5 !important;
+            overflow-y: auto !important;
+            resize: none !important;
+            box-shadow: none !important;
+            outline: none !important;
         }}
 
         .stChatInput textarea::placeholder {{
-            color: #C4C7C5 !important;
+            color: #9AA0A6 !important;
+            opacity: 1 !important;
+        }}
+
+        /* Focus glow */
+        [data-testid="stChatInput"] > div:focus-within {{
+            border-color: #8AB4F8 !important;
+            box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.15) !important;
         }}
 
         /* ── Chat Messages ── */
