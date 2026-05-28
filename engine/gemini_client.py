@@ -3,6 +3,7 @@
 All Gemini API calls go through ``call_gemini()`` so that retry logic,
 error handling, and search-grounding config live in one place.
 """
+import re
 import time
 
 from google import genai
@@ -76,7 +77,26 @@ def call_gemini(
         except Exception as e:
             last_error = str(e)
             if attempt < max_retries - 1:
-                wait = 2 ** attempt  # 1s, 2s, 4s
+                wait = _parse_retry_delay(last_error)
                 time.sleep(wait)
 
     return {"error": f"API call failed after {max_retries} retries: {last_error}", "raw_text": ""}
+
+
+def _parse_retry_delay(error_str: str, default: float = 5.0, max_wait: float = 90.0) -> float:
+    """Extract the API-suggested retryDelay from a 429 error string.
+
+    The Gemini API embeds a ``retryDelay`` value (e.g. ``'retryDelay': '46s'``)
+    in the error payload. We parse it and use it directly so we don't hammer
+    the endpoint with retries that are guaranteed to fail.
+
+    Falls back to ``default`` seconds for non-429 errors.
+    """
+    if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
+        # Try to extract 'retryDelay': '<N>s' from the error string
+        match = re.search(r"retryDelay[\"']?:\s*[\"']?(\d+(?:\.\d+)?)s", error_str)
+        if match:
+            return min(float(match.group(1)) + 2.0, max_wait)  # +2s buffer
+        return min(60.0, max_wait)  # Safe default for unknown 429
+    # For non-rate-limit errors use short exponential-style default
+    return default
