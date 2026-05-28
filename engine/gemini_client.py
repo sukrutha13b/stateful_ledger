@@ -8,11 +8,25 @@ import time
 from google import genai
 from google.genai import types
 
-from config import GEMINI_API_KEY, MODEL_NAME, MAX_OUTPUT_TOKENS
+from config import MODEL_NAME, MAX_OUTPUT_TOKENS
 from utils.json_parser import safe_parse_json
 
-# Initialise client once at module level
-client = genai.Client(api_key=GEMINI_API_KEY)
+# Lazy client — re-reads API key so .env / secrets changes take effect
+_client = None
+_current_key = None
+
+
+def _get_client():
+    """Return a genai.Client, re-creating it if the API key changed."""
+    global _client, _current_key
+    import os
+    from dotenv import load_dotenv
+    load_dotenv(override=True)
+    key = os.getenv("GEMINI_API_KEY", "")
+    if _client is None or key != _current_key:
+        _client = genai.Client(api_key=key)
+        _current_key = key
+    return _client
 
 
 def call_gemini(
@@ -48,7 +62,7 @@ def call_gemini(
     last_error = None
     for attempt in range(max_retries):
         try:
-            response = client.models.generate_content(
+            response = _get_client().models.generate_content(
                 model=MODEL_NAME,
                 contents=user_prompt,
                 config=config,

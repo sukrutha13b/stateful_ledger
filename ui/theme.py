@@ -52,13 +52,29 @@ def inject_gemini_css():
     """
     st.markdown(f"""
     <style>
-        /* ── Import Google Sans ── */
+        /* ── Import Google Sans & Material Symbols ── */
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
-        /* ── Global Font ── */
-        html, body, [class*="st-"] {{
+        /* ── Global Font (exclude icon fonts) ── */
+        html, body, [class*="st-"]:not([class*="material"]):not(span.material-symbols-rounded) {{
             font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
             font-size: 14px !important;
+        }}
+
+        /* ── Protect Material Symbols icons ── */
+        .material-symbols-rounded,
+        [data-testid="collapsedControl"] span,
+        [data-testid="stSidebarCollapsedControl"] span {{
+            font-family: 'Material Symbols Rounded' !important;
+            font-size: 24px !important;
+            -webkit-font-feature-settings: 'liga' !important;
+            font-feature-settings: 'liga' !important;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden !important;
+            width: 24px !important;
+            height: 24px !important;
+            display: inline-block !important;
         }}
 
         /* ── Hide Streamlit Branding (keep sidebar toggle visible) ── */
@@ -86,6 +102,7 @@ def inject_gemini_css():
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;
+            color: #E2E2E2 !important;
         }}
 
         /* Sidebar toggle arrow button */
