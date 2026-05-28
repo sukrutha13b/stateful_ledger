@@ -166,6 +166,13 @@ def inject_gemini_css():
             padding: 1rem 1.25rem !important;
         }}
 
+        /* ── Hide chat avatars (colored blocks) ── */
+        [data-testid="chatAvatarIcon-user"],
+        [data-testid="chatAvatarIcon-assistant"],
+        .stChatMessage [data-testid="stChatMessageAvatarContainer"] {{
+            display: none !important;
+        }}
+
         /* ── Buttons — Pill Shape ── */
         .stButton > button {{
             border-radius: {RADIUS_PILL} !important;
