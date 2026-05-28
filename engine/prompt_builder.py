@@ -57,15 +57,23 @@ MAIN_RESPONSE_SCHEMA = """{
         }
     ],
     "assumptions": ["assumption 1", "assumption 2"],
-    "missing_info": ["info 1", "info 2"]
+    "missing_info": ["info 1", "info 2"],
+    "goal_type": "analytical|creative|technical|exploratory (FIRST TURN ONLY, omit otherwise)",
+    "rubric_criteria": ["criterion 1", "criterion 2", "(FIRST TURN ONLY, omit otherwise)"]
 }"""
 
 
-def build_main_prompt(user_input: str, ledger_snapshot: dict) -> tuple[str, str]:
+def build_main_prompt(
+    user_input: str,
+    ledger_snapshot: dict,
+    is_first_turn: bool = False,
+) -> tuple[str, str]:
     """Build system + user prompt for main response generation (Call #1).
 
     Injects ledger context (rules, assumptions, goal type, rubric)
     into the system prompt so the model is aware of session state.
+    On the first turn, also requests goal_type and rubric_criteria inline
+    so a separate rubric call is not needed.
 
     Returns:
         ``(system_prompt, user_prompt)``
@@ -84,6 +92,15 @@ def build_main_prompt(user_input: str, ledger_snapshot: dict) -> tuple[str, str]
         indent=2
     )
 
+    first_turn_instruction = ""
+    if is_first_turn:
+        first_turn_instruction = """
+6. Since this is the FIRST turn, also infer:
+   - goal_type: one of \"analytical\", \"creative\", \"technical\", \"exploratory\"
+   - rubric_criteria: 3-5 evaluation criteria appropriate for this goal type
+   Include both fields in your JSON response.
+"""
+
     system_prompt = f"""You are a precise reasoning assistant operating within a Stateful Ledger system.
 
 ACTIVE LEDGER STATE:
@@ -95,13 +112,13 @@ Rubric criteria: {rubric_criteria}
 INSTRUCTIONS:
 1. Generate a comprehensive response to the user's query.
 2. For EACH paragraph, tag its reasoning type:
-   - "established_fact": grounded in prior session context or verifiable data
-   - "assumption": a premise taken without explicit grounding
-   - "inference": derived logically from context but not directly stated
+   - \"established_fact\": grounded in prior session context or verifiable data
+   - \"assumption\": a premise taken without explicit grounding
+   - \"inference\": derived logically from context but not directly stated
 3. For each paragraph, extract discrete factual claims as a flat list.
-   Tag each claim as "established", "reasoned", or "inferred".
+   Tag each claim as \"established\", \"reasoned\", or \"inferred\".
 4. List ALL assumptions you are making in this response.
-5. List ALL information that was NOT available to you.
+5. List ALL information that was NOT available to you.{first_turn_instruction}
 
 Return ONLY valid JSON matching this schema:
 {MAIN_RESPONSE_SCHEMA}

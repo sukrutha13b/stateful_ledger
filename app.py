@@ -1,11 +1,12 @@
 import streamlit as st
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 from ledger.schema import (
     Ledger, Assumption, MissingInfo, VerifiedResponse, Paragraph, Claim
 )
 from ledger.manager import init_ledger, get_snapshot, update_ledger
 from engine.gemini_client import call_gemini
-from engine.prompt_builder import build_rubric_prompt, build_main_prompt
+from engine.prompt_builder import build_main_prompt
 from engine.layer1 import (
     run_contradiction_check, run_completeness_audit,
     extract_assumptions_and_missing
@@ -99,31 +100,28 @@ if user_input:
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # ── RUBRIC GENERATION (first turn only) ──
-    if not ledger.rubric_confirmed and ledger.turn_count == 0:
-        with st.spinner("Analyzing your goal..."):
-            sys_prompt, usr_prompt = build_rubric_prompt(user_input)
-            rubric_result = call_gemini(sys_prompt, usr_prompt)
-
-            if "error" not in rubric_result:
-                ledger.goal_type = rubric_result.get("goal_type", "exploratory")
-                ledger.rubric.criteria = rubric_result.get("rubric_criteria", [])
-                ledger.rubric_confirmed = True
-            else:
-                # Fallback: use exploratory with default rubric
-                ledger.goal_type = "exploratory"
-                ledger.rubric.criteria = ["Accuracy", "Completeness", "Clarity"]
-                ledger.rubric_confirmed = True
-
     # ── MAIN GENERATION PIPELINE ──
+    is_first_turn = (not ledger.rubric_confirmed and ledger.turn_count == 0)
     with st.chat_message("assistant"):
         with st.spinner("Generating and verifying response..."):
             # Step 1: Build prompt with ledger context
             snapshot = get_snapshot(ledger)
-            sys_prompt, usr_prompt = build_main_prompt(user_input, snapshot)
+            sys_prompt, usr_prompt = build_main_prompt(
+                user_input, snapshot, is_first_turn=is_first_turn
+            )
 
-            # Step 2: Call #1 — Main generation
+            # Step 2: Call #1 — Main generation (+ rubric on first turn)
             raw_response = call_gemini(sys_prompt, usr_prompt)
+
+            # Extract rubric from combined response on first turn
+            if is_first_turn:
+                if "error" not in raw_response:
+                    ledger.goal_type = raw_response.get("goal_type", "exploratory")
+                    ledger.rubric.criteria = raw_response.get("rubric_criteria", ["Accuracy", "Completeness", "Clarity"])
+                else:
+                    ledger.goal_type = "exploratory"
+                    ledger.rubric.criteria = ["Accuracy", "Completeness", "Clarity"]
+                ledger.rubric_confirmed = True
 
             if "error" in raw_response:
                 st.error(f"Generation failed: {raw_response.get('error', 'Unknown error')}")
@@ -146,13 +144,17 @@ if user_input:
                     for m in missing_texts
                 ]
 
-                # Step 3: Call #2 — Contradiction check
-                contradiction_flags = run_contradiction_check(
-                    user_input, verified_response, ledger
-                )
+                # Steps 3 & 4: Call #2 (contradiction) + Call #3 (classification) — run in parallel
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    f_contradiction = executor.submit(
+                        run_contradiction_check, user_input, verified_response, ledger
+                    )
+                    f_classification = executor.submit(
+                        run_claim_classification, verified_response
+                    )
+                    contradiction_flags = f_contradiction.result()
+                    verified_response = f_classification.result()
 
-                # Step 4: Call #3 — Claim classification
-                verified_response = run_claim_classification(verified_response)
                 verified_response = detect_overconfidence(verified_response)
 
                 # Step 5: Completeness audit

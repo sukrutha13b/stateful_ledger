@@ -34,7 +34,7 @@ def call_gemini(
     system_prompt: str,
     user_prompt: str,
     use_search_grounding: bool = False,
-    max_retries: int = 3,
+    max_retries: int = 2,
 ) -> dict:
     """Call the Gemini API with structured JSON output.
 
@@ -97,6 +97,6 @@ def _parse_retry_delay(error_str: str, default: float = 5.0, max_wait: float = 9
         match = re.search(r"retryDelay[\"']?:\s*[\"']?(\d+(?:\.\d+)?)s", error_str)
         if match:
             return min(float(match.group(1)) + 2.0, max_wait)  # +2s buffer
-        return min(60.0, max_wait)  # Safe default for unknown 429
+        return min(20.0, max_wait)  # Cap unknown 429 wait to 20s (was 60s)
     # For non-rate-limit errors use short exponential-style default
     return default

@@ -18,7 +18,7 @@ def _get_secret(key: str, default: str = "") -> str:
 # ── API Configuration (model is a swappable parameter) ──
 GEMINI_API_KEY: str = _get_secret("GEMINI_API_KEY", "")
 MODEL_NAME: str = _get_secret("GEMINI_MODEL", "gemini-2.5-flash-lite")  # Change via .env or st.secrets
-MAX_OUTPUT_TOKENS: int = 4096
+MAX_OUTPUT_TOKENS: int = 2048
 MAX_HISTORY_TURNS_IN_PROMPT: int = 10
 
 GOAL_TYPES: list[str] = ["analytical", "creative", "technical", "exploratory"]
