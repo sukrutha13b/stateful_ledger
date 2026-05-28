@@ -68,31 +68,31 @@ def inject_gemini_css():
         .stDeployButton {{visibility: hidden;}}
 
         /* ── Main App Background & Layout ── */
-        .stApp {
+        .stApp {{
             background-color: #131314;
-        }
+        }}
 
         /* ── Sidebar ── */
-        section[data-testid="stSidebar"] {
+        section[data-testid="stSidebar"] {{
             background-color: #1E1F20;
             border-right: 1px solid #282A2C;
-        }
+        }}
 
-        section[data-testid="stSidebar"] .stMarkdown {
+        section[data-testid="stSidebar"] .stMarkdown {{
             color: #E2E2E2;
-        }
+        }}
 
         /* ── Chat Input — Pill Shape ── */
-        .stChatInput textarea {
+        .stChatInput textarea {{
             border-radius: 50px !important;
             background-color: #1E1F20 !important;
             border: 1px solid #282A2C !important;
             color: #E2E2E2 !important;
-        }
+        }}
 
-        .stChatInput textarea::placeholder {
+        .stChatInput textarea::placeholder {{
             color: #C4C7C5 !important;
-        }
+        }}
 
         /* ── Chat Messages ── */
         .stChatMessage {{
