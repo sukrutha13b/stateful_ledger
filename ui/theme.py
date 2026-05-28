@@ -169,7 +169,10 @@ def inject_gemini_css():
         /* ── Hide chat avatars (colored blocks) ── */
         [data-testid="chatAvatarIcon-user"],
         [data-testid="chatAvatarIcon-assistant"],
-        .stChatMessage [data-testid="stChatMessageAvatarContainer"] {{
+        [data-testid="stChatMessageAvatar"],
+        [data-testid="stChatMessageAvatarContainer"],
+        .stChatMessageAvatar,
+        .stChatMessage > div:first-child {{
             display: none !important;
         }}
 
