@@ -14,6 +14,7 @@ from engine.layer2 import run_claim_classification, detect_overconfidence
 from ui.sidebar import (
     render_ledger_panel, render_trust_indicator,
     render_reasoning_trace, render_import_export_buttons,
+    render_gemini_sidebar
 )
 from ui.chat import render_chat_history, render_response_block
 from ui.flags import render_contradiction_widget, render_tension_notice
@@ -204,16 +205,7 @@ if "recent_queries" not in st.session_state:
 
 # ── Sidebar ──
 with st.sidebar:
-    st.markdown("### Gemini")
-    st.divider()
-
-    if st.button("＋  New chat", key="new_chat_btn"):
-        st.session_state.clear()
-        st.rerun()
-
-    st.markdown("**Search chats**")
-    st.markdown("**Library**")
-    st.markdown("**Notebooks**")
+    render_gemini_sidebar()
 
     st.divider()
     st.markdown("**Recent**")
