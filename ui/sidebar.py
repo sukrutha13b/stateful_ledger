@@ -77,7 +77,7 @@ def render_ledger_panel(ledger: Ledger):
     """Render the full sidebar ledger panel with edit controls."""
 
     # ── Rules Section ──
-    st.subheader(f"📋 Rules ({len([r for r in ledger.rules if r.active])})")
+    st.subheader(f"Rules ({len([r for r in ledger.rules if r.active])})")
     for rule in ledger.rules:
         if not rule.active:
             continue
@@ -129,7 +129,7 @@ def render_ledger_panel(ledger: Ledger):
     st.divider()
 
     # ── Assumptions Section ──
-    st.subheader(f"🤔 Assumptions ({len(ledger.assumptions)})")
+    st.subheader(f"Assumptions ({len(ledger.assumptions)})")
     for assumption in ledger.assumptions:
         status = ""
         if assumption.user_confirmed is True:
@@ -143,7 +143,7 @@ def render_ledger_panel(ledger: Ledger):
     st.divider()
 
     # ── Missing Info Section ──
-    st.subheader(f"❓ Missing Info ({len(ledger.missing_info)})")
+    st.subheader(f"Missing Info ({len(ledger.missing_info)})")
     for info in ledger.missing_info:
         st.markdown(f"・ {info.text}")
 
@@ -151,7 +151,7 @@ def render_ledger_panel(ledger: Ledger):
 def render_trust_indicator(trust_score: float):
     """Render the trust score progress bar with qualitative label."""
     st.divider()
-    st.subheader("📊 Trust Indicator")
+    st.subheader("Trust Indicator")
 
     # Qualitative label
     if trust_score >= 0.75:

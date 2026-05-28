@@ -26,7 +26,6 @@ from utils.id_gen import generate_id
 # ── Page Config ──
 st.set_page_config(
     page_title="Stateful Ledger",
-    page_icon="📒",
     layout="wide",
 )
 
@@ -49,29 +48,18 @@ with st.sidebar:
 
 
 # ── Main Area Layout ──
-col_main, col_dash = st.columns([2.5, 1], gap="large")
-
-with col_main:
-    st.title("📒 Stateful Ledger")
-    st.caption("Dual-layer verification engine for AI-generated responses")
-
 ledger = st.session_state["ledger"]
 
-with col_dash:
-    st.markdown("### 📊 Dev Dashboard")
-    st.caption("TRACK & SIMULATE PIPELINE")
-    st.divider()
-    render_ledger_panel(ledger)
-    render_trust_indicator(ledger.trust_score)
-    st.divider()
-    render_import_export_buttons(ledger)
-
-    st.divider()
-    if st.button("🔄 Reset Session", key="reset_session_dash"):
-        st.session_state.clear()
-        st.rerun()
+if ledger.turn_count == 0:
+    col_main = st.container()
+    col_dash = None
+else:
+    col_main, col_dash = st.columns([2.5, 1], gap="large")
 
 with col_main:
+    st.title("Stateful Ledger")
+    st.caption("Dual-layer verification engine for AI-generated responses")
+
     # Render rubric card if pending
     if st.session_state.get("pending_rubric") and not ledger.rubric_confirmed:
         render_rubric_card(ledger.rubric, ledger.goal_type)
@@ -79,6 +67,19 @@ with col_main:
 
     # Render chat history
     render_chat_history(st.session_state["messages"], ledger)
+
+if col_dash is not None:
+    with col_dash:
+        with st.expander("Session Ledger", expanded=False):
+            render_ledger_panel(ledger)
+            render_trust_indicator(ledger.trust_score)
+            st.divider()
+            render_import_export_buttons(ledger)
+
+            st.divider()
+            if st.button("Reset Session", key="reset_session_dash"):
+                st.session_state.clear()
+                st.rerun()
 
 # ── Chat Input ──
 user_input = st.chat_input("Ask anything...")

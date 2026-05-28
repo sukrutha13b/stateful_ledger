@@ -58,7 +58,14 @@ def inject_gemini_css():
         /* ── Global Font ── */
         html, body, [class*="st-"] {{
             font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 14px !important;
         }}
+
+        /* ── Hide Streamlit Elements ── */
+        header {{visibility: hidden;}}
+        #MainMenu {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
+        .stDeployButton {{visibility: hidden;}}
 
         /* ── Main App Background ── */
         .stApp {{
