@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stateful Ledger — Dev Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ══════════════════════════════════════════════════
+           GEMINI DESIGN LANGUAGE — DARK MODE TOKENS
+           ══════════════════════════════════════════════════ */
+        :root {
+            --base-bg: #131314;
+            --surface-low: #1E1F20;
+            --surface-high: #282A2C;
+            --text-primary: #E2E2E2;
+            --text-secondary: #C4C7C5;
+            --accent-blue: #8AB4F8;
+            --accent-green: #1E8E3E;
+            --ambient-indigo: #1a1a2e;
+            --ambient-purple: #2d1b4e;
+            --claim-grounded: #1E8E3E;
+            --claim-contested: #F9AB00;
+            --claim-unverified: #EA4335;
+            --warning-bg: #3d2e00;
+            --warning-border: #F9AB00;
+            --error-bg: #3d1111;
+            --error-border: #EA4335;
+            --info-bg: #0d2137;
+            --info-border: #8AB4F8;
+            --radius-pill: 50px;
+            --radius-card: 12px;
+            --radius-card-lg: 16px;
+            --font-display: 32px;
+            --font-body: 16px;
+            --font-label: 14px;
+            --font-caption: 12px;
+            --sidebar-width: 280px;
+        }
+
+        /* ── Reset & Base ── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--base-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ── Layout ── */
+        .app-shell {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            background-color: var(--surface-low);
+            border-right: 1px solid var(--surface-high);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 1.5rem 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--surface-high) transparent;
+        }
+
+        .main-chat-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 2.5rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--surface-high) transparent;
+        }
+
+        .dashboard-panel {
+            width: 440px;
+            min-width: 440px;
+            background-color: var(--surface-low);
+            border-left: 1px solid var(--surface-high);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 1.5rem 1.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--surface-high) transparent;
+        }
+
+        /* ── Navigation Tabs ── */
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-pill);
+            background-color: var(--surface-high);
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: var(--font-label);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-tab:hover {
+            background-color: var(--accent-blue);
+            color: var(--base-bg);
+            transform: translateY(-1px);
+        }
+
+        .nav-tab.active {
+            background-color: var(--accent-blue);
+            color: var(--base-bg);
+            border-color: var(--accent-blue);
+        }
+
+        /* ── Cards ── */
+        .card {
+            background-color: var(--surface-low);
+            border-radius: var(--radius-card-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--surface-high);
+        }
+
+        .card-header {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-subtitle {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* ── Progress Section ── */
+        .progress-outer {
+            background-color: var(--surface-high);
+            border-radius: var(--radius-pill);
+            height: 12px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-inner {
+            height: 100%;
+            border-radius: var(--radius-pill);
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .progress-label {
+            font-size: var(--font-label);
+            font-weight: 500;
+            color: var(--accent-blue);
+            text-align: right;
+            margin-bottom: 0.25rem;
+        }
+
+        /* ── Phase Checklist ── */
+        .phase-list {
+            list-style: none;
+        }
+
+        .phase-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: var(--radius-card);
+            transition: background-color 0.15s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .phase-item:hover {
+            background-color: var(--surface-high);
+        }
+
+        .phase-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: grid;
+            place-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .phase-item input[type="checkbox"]:checked {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .phase-item input[type="checkbox"]:checked::before {
+            content: "✓";
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .phase-item label {
+            cursor: pointer;
+            font-size: var(--font-body);
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .phase-item.completed label {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+            text-decoration-color: var(--text-secondary);
+        }
+
+        .phase-number {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            font-weight: 500;
+            min-width: 20px;
+        }
+
+        /* ── Textarea / Inputs ── */
+        textarea, input[type="text"] {
+            width: 100%;
+            background-color: var(--surface-high);
+            color: var(--text-primary);
+            border: 1px solid var(--surface-high);
+            border-radius: var(--radius-card);
+            padding: 0.75rem 1rem;
+            font-family: 'Consolas', 'Fira Code', monospace;
+            font-size: var(--font-label);
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            border-color: var(--accent-blue);
+        }
+
+        textarea::placeholder, input[type="text"]::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-pill);
+            background-color: var(--surface-high);
+            color: var(--text-primary);
+            border: 1px solid var(--surface-high);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: var(--font-label);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-blue);
+            color: var(--base-bg);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: var(--base-bg);
+            border-color: var(--accent-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: #a8c8ff;
+        }
+
+        .btn-small {
+            padding: 0.3rem 0.8rem;
+            font-size: var(--font-caption);
+        }
+
+        /* ── Badge Pills ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: var(--radius-pill);
+            font-size: var(--font-caption);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .badge-grounded { background-color: var(--claim-grounded); color: white; }
+        .badge-contested { background-color: var(--claim-contested); color: var(--base-bg); }
+        .badge-unverified { background-color: var(--claim-unverified); color: white; }
+
+        .badge-fact { background-color: transparent; color: var(--text-secondary); border: 1px solid var(--text-secondary); font-variant: small-caps; }
+        .badge-reasoned { background-color: transparent; color: var(--accent-blue); border: 1px solid var(--accent-blue); font-variant: small-caps; }
+        .badge-inferred { background-color: transparent; color: var(--claim-contested); border: 1px solid var(--claim-contested); font-style: italic; }
+
+        /* ── Tab Panels ── */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Greeting / Ambient Glow ── */
+        .greeting {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(45, 27, 78, 0.2) 0%,
+                rgba(26, 26, 46, 0.13) 40%,
+                transparent 70%
+            );
+            border-radius: var(--radius-card-lg);
+            margin-bottom: 2rem;
+        }
+
+        .greeting h1 {
+            font-size: var(--font-display);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-blue), #c084fc, var(--claim-contested), var(--accent-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .greeting p {
+            color: var(--text-secondary);
+            font-size: var(--font-body);
+        }
+
+        /* ── Divider ── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--surface-high);
+            margin: 1rem 0;
+            opacity: 0.5;
+        }
+
+        /* ── Trust Gauge ── */
+        .trust-gauge {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background-color: var(--surface-high);
+            border-radius: var(--radius-card);
+        }
+
+        .trust-gauge .gauge-bar {
+            flex: 1;
+            height: 8px;
+            background-color: var(--base-bg);
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+        }
+
+        .trust-gauge .gauge-fill {
+            height: 100%;
+            border-radius: var(--radius-pill);
+            transition: width 0.5s ease, background-color 0.5s ease;
+        }
+
+        .trust-gauge .gauge-label {
+            font-size: var(--font-caption);
+            font-weight: 500;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* ── Ledger Inspector ── */
+        .inspector-section {
+            margin-bottom: 1.25rem;
+        }
+
+        .inspector-section h3 {
+            font-size: var(--font-label);
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .inspector-item {
+            padding: 0.5rem 0.75rem;
+            background-color: var(--surface-high);
+            border-radius: 8px;
+            margin-bottom: 0.35rem;
+            font-size: var(--font-label);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .inspector-item .dot {
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        /* ── Mock Chat ── */
+        .chat-container {
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            align-items: flex-start;
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: grid;
+            place-content: center;
+            font-size: var(--font-caption);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .chat-avatar.user {
+            background-color: var(--accent-green);
+            color: white;
+        }
+
+        .chat-avatar.assistant {
+            background: linear-gradient(135deg, var(--accent-blue), #c084fc, var(--claim-contested));
+            color: var(--base-bg);
+        }
+
+        .chat-bubble {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            background-color: var(--surface-low);
+            border-radius: var(--radius-card-lg);
+            line-height: 1.6;
+        }
+
+        .chat-bubble p { margin-bottom: 0.75rem; }
+        .chat-bubble p:last-child { margin-bottom: 0; }
+
+        .chat-claims {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+
+        .chat-input-mock {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.25rem;
+            background-color: var(--surface-low);
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--surface-high);
+            margin-top: 2rem;
+        }
+
+        .chat-input-mock .plus-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: var(--surface-high);
+            border: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            display: grid;
+            place-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .chat-input-mock .plus-btn:hover {
+            background-color: var(--accent-blue);
+            color: var(--base-bg);
+        }
+
+        .chat-input-mock input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: var(--font-body);
+            outline: none;
+        }
+
+        .chat-input-mock input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .chat-input-mock .mic-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .chat-input-mock .mic-btn:hover { color: var(--accent-blue); }
+
+        /* ── Contradiction Widget ── */
+        .contradiction-widget {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: var(--radius-card);
+            padding: 1rem 1.25rem;
+            margin: 0.75rem 0;
+        }
+
+        .contradiction-widget .cw-title {
+            font-weight: 500;
+            color: var(--claim-contested);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .contradiction-widget .cw-body {
+            font-size: var(--font-label);
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .contradiction-widget .cw-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* ── Completeness Tracker ── */
+        .completeness-item {
+            padding: 0.4rem 0;
+            font-size: var(--font-label);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ── Perspective Expander ── */
+        .perspective-box {
+            background-color: var(--surface-high);
+            border-radius: var(--radius-card);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-left: 3px solid var(--claim-contested);
+        }
+
+        .perspective-box .p-framing {
+            font-size: var(--font-label);
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+            padding-left: 0.5rem;
+        }
+
+        .perspective-box .p-note {
+            font-size: var(--font-caption);
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        /* ── Error / Info Boxes ── */
+        .info-box {
+            background-color: var(--info-bg);
+            border: 1px solid var(--info-border);
+            border-radius: var(--radius-card);
+            padding: 0.75rem 1rem;
+            font-size: var(--font-label);
+            margin: 0.5rem 0;
+        }
+
+        .error-box {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            border-radius: var(--radius-card);
+            padding: 0.75rem 1rem;
+            font-size: var(--font-label);
+            margin: 0.5rem 0;
+        }
+
+        /* ── Sidebar Header ── */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-header .logo {
+            font-size: 24px;
+        }
+
+        .sidebar-header .title {
+            font-size: var(--font-body);
+            font-weight: 500;
+        }
+
+        /* ── Scrollbar Styling ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--surface-high); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* ── Animations ── */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in { animation: fadeIn 0.3s ease forwards; }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* ── Utility ── */
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .text-secondary { color: var(--text-secondary); }
+        .text-sm { font-size: var(--font-label); }
+        .text-xs { font-size: var(--font-caption); }
+        .flex-row { display: flex; gap: 0.5rem; align-items: center; }
+        .flex-1 { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- ══════ GEMINI LEFT NAVIGATION SIDEBAR ══════ -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Collapse Menu & Logo -->
+            <div class="sidebar-header" style="justify-content: space-between; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 20px; cursor: pointer; color: var(--text-secondary);">☰</span>
+                    <span class="title" style="font-weight: 500; font-size: 16px; letter-spacing: 0.2px;">Gemini</span>
+                </div>
+                <span style="font-size: 11px; background: var(--surface-high); padding: 2px 8px; border-radius: var(--radius-pill); color: var(--accent-blue); font-weight: 500;">Advanced</span>
+            </div>
+
+            <!-- New Chat Button -->
+            <button class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-pill); margin-bottom: 1.5rem; font-size: var(--font-label); border: none;">
+                <span style="font-size: 16px; font-weight: bold;">+</span> New chat
+            </button>
+
+            <!-- Global Links -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1.5rem;">
+                <div class="phase-item" style="cursor: pointer; padding: 0.5rem 0.75rem; border-radius: var(--radius-card); display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 16px;">🔍</span>
+                    <span style="font-size: var(--font-label); color: var(--text-primary); font-weight: 500;">Search chats</span>
+                </div>
+                <div class="phase-item" style="cursor: pointer; padding: 0.5rem 0.75rem; border-radius: var(--radius-card); display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 16px;">🎥</span>
+                    <span style="font-size: var(--font-label); color: var(--text-primary); font-weight: 500;">Videos</span>
+                </div>
+                <div class="phase-item" style="cursor: pointer; padding: 0.5rem 0.75rem; border-radius: var(--radius-card); display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 16px;">📚</span>
+                    <span style="font-size: var(--font-label); color: var(--text-primary); font-weight: 500;">Library</span>
+                </div>
+                <div class="phase-item" style="cursor: pointer; padding: 0.5rem 0.75rem; border-radius: var(--radius-card); display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 16px;">📓</span>
+                    <span style="font-size: var(--font-label); color: var(--text-primary); font-weight: 500;">Notebooks</span>
+                </div>
+            </div>
+
+            <!-- Recent Chats -->
+            <div style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                <div style="font-size: 11px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem; padding-left: 0.75rem; letter-spacing: 0.5px;">Recent</div>
+                <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                    <div class="phase-item" style="cursor: pointer; padding: 0.4rem 0.75rem; border-radius: var(--radius-card); background-color: var(--surface-high); display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 14px;">💬</span>
+                        <span style="font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Microservices architecture comparison">Microservices comparison</span>
+                    </div>
+                    <div class="phase-item" style="cursor: pointer; padding: 0.4rem 0.75rem; border-radius: var(--radius-card); display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 14px;">💬</span>
+                        <span style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Python GIL multi-threading limits">Python GIL multi-threading</span>
+                    </div>
+                    <div class="phase-item" style="cursor: pointer; padding: 0.4rem 0.75rem; border-radius: var(--radius-card); display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 14px;">💬</span>
+                        <span style="font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Stateful ledger MVP guidelines">Stateful ledger MVP guidelines</span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider" style="margin: 0.75rem 0 0.5rem 0;">
+
+            <!-- Bottom: User Profile -->
+            <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-card); margin-top: auto; cursor: pointer;" class="phase-item">
+                <div class="chat-avatar user" style="width: 28px; height: 28px; font-size: 12px;">U</div>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">User Account</span>
+                    <span style="font-size: 11px; color: var(--text-secondary);">user@example.com</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ══════ CENTER: MAIN CHAT PANEL ══════ -->
+        <main class="main-chat-panel">
+            <!-- Greeting -->
+            <div class="greeting" id="greetingArea">
+                <h1>Stateful Ledger</h1>
+                <p>Interactive Validation & Chat Preview Environment</p>
+            </div>
+
+            <div class="chat-container" id="mockChatContainer">
+                <!-- Rubric Card Mock -->
+                <div class="card" style="border: 1px solid var(--accent-blue);">
+                    <div class="card-header">📋 Session Rubric — [Analytical]</div>
+                    <div class="card-subtitle">This rubric will be used to evaluate response completeness.</div>
+                    <div class="inspector-item"><span class="dot">✎</span> Criterion 1: Accuracy of claims</div>
+                    <div class="inspector-item"><span class="dot">✎</span> Criterion 2: Coverage of counter-arguments</div>
+                    <div class="inspector-item"><span class="dot">✎</span> Criterion 3: Source attribution</div>
+                    <div class="flex-row mt-2">
+                        <button class="btn btn-primary btn-small">✅ Confirm & Proceed</button>
+                        <button class="btn btn-small">+ Add criterion</button>
+                    </div>
+                </div>
+
+                <!-- User Message -->
+                <div class="chat-message">
+                    <div class="chat-avatar user">U</div>
+                    <div class="chat-bubble">
+                        <p>What are the pros and cons of microservices architecture compared to monolithic applications?</p>
+                    </div>
+                </div>
+
+                <!-- Assistant Response with annotations -->
+                <div class="chat-message">
+                    <div class="chat-avatar assistant">✦</div>
+                    <div class="chat-bubble">
+                        <p>Microservices architecture decomposes an application into small, independently deployable services, each running its own process and communicating via lightweight APIs.</p>
+                        <div class="flex-row mb-1">
+                            <span class="badge badge-fact">fact</span>
+                            <span class="badge badge-grounded">🟢 G</span>
+                        </div>
+                        <div class="chat-claims">
+                            <span class="badge badge-grounded">🟢 "Microservices use independent deployment"</span>
+                            <span class="badge badge-grounded">🟢 "Communication via lightweight APIs"</span>
+                        </div>
+
+                        <hr class="divider">
+
+                        <p>This approach significantly reduces deployment risk compared to monolithic architectures where a single change requires redeploying the entire application.</p>
+                        <div class="flex-row mb-1">
+                            <span class="badge badge-reasoned">reasoned</span>
+                            <span class="badge badge-contested">🟡 C</span>
+                        </div>
+                        <div class="chat-claims">
+                            <span class="badge badge-contested">🟡 "Significantly reduces deployment risk"</span>
+                        </div>
+
+                        <!-- Perspective expander -->
+                        <div class="perspective-box">
+                            <div style="color: var(--claim-contested); font-weight: 500; margin-bottom: 0.5rem;">🟡 Perspectives on: "Significantly reduces deployment risk"</div>
+                            <div class="p-framing">→ <strong>Framing 1:</strong> Risk is redistributed, not eliminated — distributed systems introduce network failures and data consistency challenges.</div>
+                            <div class="p-framing">→ <strong>Framing 2:</strong> For small teams, microservices can increase operational complexity and deployment risk.</div>
+                            <div class="p-framing">→ <strong>Framing 3:</strong> Risk reduction depends on maturity of CI/CD pipeline and observability tooling.</div>
+                            <p class="p-note">The system does not indicate which framing is correct.</p>
+                            <button class="btn btn-small mt-1">Mark as reviewed</button>
+                        </div>
+
+                        <hr class="divider">
+
+                        <p>However, the operational overhead of managing dozens of services, handling inter-service communication failures, and maintaining data consistency across service boundaries often outweighs the benefits for teams with fewer than 50 engineers.</p>
+                        <div class="flex-row mb-1">
+                            <span class="badge badge-inferred">inferred</span>
+                            <span class="badge badge-unverified">🔴 U</span>
+                        </div>
+                        <div class="chat-claims">
+                            <span class="badge badge-unverified">🔴 "Outweighs benefits for teams < 50 engineers"</span>
+                        </div>
+
+                        <hr class="divider">
+
+                        <!-- Calibration Buttons -->
+                        <div class="text-xs text-secondary mb-1">Was this response:</div>
+                        <div class="flex-row">
+                            <button class="btn btn-small">✅ Accurate</button>
+                            <button class="btn btn-small">❌ Inaccurate</button>
+                            <button class="btn btn-small">❓ Uncertain</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contradiction Widget -->
+                <div class="contradiction-widget">
+                    <div class="cw-title">⚠️ CONTRADICTION DETECTED</div>
+                    <div class="cw-body">
+                        This response conflicts with Rule #2: <em>"Analysis must remain vendor-neutral"</em><br>
+                        Conflict: <em>"The response implicitly favours AWS over alternatives"</em>
+                    </div>
+                    <div class="cw-actions">
+                        <button class="btn btn-small">📝 Update the Rule</button>
+                        <button class="btn btn-small">⏭️ Override for this response</button>
+                        <button class="btn btn-small">🔀 Flag the Tension</button>
+                    </div>
+                </div>
+
+                <!-- Completeness Tracker -->
+                <div class="card">
+                    <div class="card-header">📋 Completeness Check</div>
+                    <div class="completeness-item">✅ <strong>Accuracy of claims</strong>: Addressed</div>
+                    <div class="completeness-item">✅ <strong>Coverage of counter-arguments</strong>: Addressed</div>
+                    <div class="completeness-item" style="color: var(--claim-unverified);">❌ <strong>Source attribution</strong>: Not addressed</div>
+                    <hr class="divider">
+                    <div class="flex-row">
+                        <button class="btn btn-small">🔄 Request missing coverage</button>
+                        <button class="btn btn-small">⏭️ Mark as intentionally skipped</button>
+                    </div>
+                </div>
+
+                <!-- Chat Input Mock -->
+                <div class="chat-input-mock">
+                    <button class="plus-btn">+</button>
+                    <input type="text" placeholder="Ask Gemini" disabled>
+                    <button class="mic-btn">🎤</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- ══════ RIGHT: DEVELOPER DASHBOARD ══════ -->
+        <aside class="dashboard-panel" id="dashboard-panel">
+            <div class="sidebar-header">
+                <span class="logo">📊</span>
+                <span class="title">Dev Dashboard</span>
+            </div>
+            <div class="card-subtitle">TRACK & SIMULATE PIPELINE</div>
+            <hr class="divider">
+
+            <!-- Nav Tabs -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="progress" onclick="switchTab('progress')">📊 Progress</button>
+                <button class="nav-tab" data-tab="inspector" onclick="switchTab('inspector')">🔍 Inspector</button>
+                <button class="nav-tab" data-tab="simulator" onclick="switchTab('simulator')">⚗️ Simulator</button>
+            </nav>
+
+            <!-- ─── TAB 1: Progress Tracker ─── -->
+            <div class="tab-panel active" id="tab-progress">
+                <div class="card">
+                    <div class="card-header">📊 Implementation Progress</div>
+                    <div class="progress-label" id="progressLabel">0 / 12 phases complete — 0%</div>
+                    <div class="progress-outer">
+                        <div class="progress-inner" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Phase Checklist</div>
+                    <ul class="phase-list" id="phaseList">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ─── TAB 2: Ledger Inspector ─── -->
+            <div class="tab-panel" id="tab-inspector">
+                <div class="card">
+                    <div class="card-header">🔍 Ledger State Inspector</div>
+                    <div class="card-subtitle">Paste a JSON ledger snapshot to browse its contents.</div>
+                    <textarea id="ledgerInput" rows="8" placeholder='Paste your ledger JSON here, or click "Load Sample" to see a demo...'></textarea>
+                    <div class="flex-row mt-2">
+                        <button class="btn btn-primary" onclick="parseLedger()">Parse Ledger</button>
+                        <button class="btn" onclick="loadSampleLedger()">Load Sample</button>
+                        <button class="btn" onclick="clearLedger()">Clear</button>
+                    </div>
+                </div>
+
+                <div id="inspectorOutput" style="display:none;" class="fade-in">
+                    <div class="card">
+                        <div class="card-header">Session Info</div>
+                        <div id="inspSessionInfo"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">📋 Rules</div>
+                        <div id="inspRules"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">🤔 Assumptions</div>
+                        <div id="inspAssumptions"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">❓ Missing Info</div>
+                        <div id="inspMissing"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">📊 Rubric</div>
+                        <div id="inspRubric"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">💬 Interaction History</div>
+                        <div id="inspHistory"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── TAB 3: Pipeline Simulator ─── -->
+            <div class="tab-panel" id="tab-simulator">
+                <div class="card">
+                    <div class="card-header">⚗️ Pipeline Simulator</div>
+                    <div class="card-subtitle">Paste a raw Gemini Call #1 JSON response to see how it renders with claim badges, step tags, and completeness checks.</div>
+                    <textarea id="pipelineInput" rows="8" placeholder='Paste Gemini structured JSON response here, or click "Load Sample"...'></textarea>
+                    <div class="flex-row mt-2">
+                        <button class="btn btn-primary" onclick="simulatePipeline()">Simulate</button>
+                        <button class="btn" onclick="loadSamplePipeline()">Load Sample</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Ledger Preview (Persistent at the bottom of the Developer Dashboard) -->
+            <div class="card" id="sidebarLedger" style="margin-top: 1.5rem; border: 1px solid var(--surface-high);">
+                <div class="card-header" style="font-size: 15px; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <span>📒</span>
+                    <span>Active Ledger State</span>
+                </div>
+                <div class="inspector-section" style="margin-bottom: 0.75rem;">
+                    <h3 style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem;">📋 Rules <span id="sidebarRuleCount">(0)</span></h3>
+                    <div id="sidebarRules" class="text-xs text-secondary" style="padding-left:0.5rem;">No ledger loaded</div>
+                </div>
+                <div class="inspector-section" style="margin-bottom: 0.75rem;">
+                    <h3 style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem;">🤔 Assumptions <span id="sidebarAssumptionCount">(0)</span></h3>
+                    <div id="sidebarAssumptions" class="text-xs text-secondary" style="padding-left:0.5rem;">—</div>
+                </div>
+                <div class="inspector-section" style="margin-bottom: 0.75rem;">
+                    <h3 style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem;">❓ Missing Info <span id="sidebarMissing">(0)</span></h3>
+                    <div id="sidebarMissingInfo" class="text-xs text-secondary" style="padding-left:0.5rem;">—</div>
+                </div>
+                <hr class="divider" style="margin: 0.75rem 0;">
+                <div class="inspector-section">
+                    <h3 style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">📊 Trust Indicator</h3>
+                    <div class="trust-gauge">
+                        <div class="gauge-bar">
+                            <div class="gauge-fill" id="sidebarTrustFill" style="width:0%; background-color: var(--claim-unverified);"></div>
+                        </div>
+                        <span class="gauge-label" id="sidebarTrustLabel">0%</span>
+                    </div>
+                    <div class="text-xs text-secondary mt-1" id="sidebarTrustText">No data</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const PHASES = [
+            { id: 0,  label: "Local Development Dashboard", key: "phase_0" },
+            { id: 1,  label: "Project Scaffolding & Dependencies", key: "phase_1" },
+            { id: 2,  label: "Ledger Data Layer (Schema + Manager)", key: "phase_2" },
+            { id: 3,  label: "Utilities & Gemini API Client", key: "phase_3" },
+            { id: 4,  label: "Prompt Builder & Structured Output", key: "phase_4" },
+            { id: 5,  label: "Rubric Generation System", key: "phase_5" },
+            { id: 6,  label: "Layer 1: Internal Logic Engine", key: "phase_6" },
+            { id: 7,  label: "Layer 2: External Validation Engine", key: "phase_7" },
+            { id: 8,  label: "Sidebar: Ledger Panel & Trust", key: "phase_8" },
+            { id: 9,  label: "Calibration Feedback & Trust Score", key: "phase_9" },
+            { id: 10, label: "Main App Assembly & Chat Loop", key: "phase_10" },
+            { id: 11, label: "Polish & Edge Case Hardening", key: "phase_11" },
+        ];
+
+        // ── Load saved state from localStorage ──
+        function loadState() {
+            const saved = localStorage.getItem("sl_dashboard_state");
+            return saved ? JSON.parse(saved) : {};
+        }
+
+        function saveState(state) {
+            localStorage.setItem("sl_dashboard_state", JSON.stringify(state));
+        }
+
+        // ══════════════════════════════════════════════════
+        // TAB 1: PROGRESS TRACKER
+        // ══════════════════════════════════════════════════
+        function renderPhases() {
+            const list = document.getElementById("phaseList");
+            const state = loadState();
+            list.innerHTML = "";
+
+            PHASES.forEach(phase => {
+                const checked = state[phase.key] || false;
+                const li = document.createElement("li");
+                li.className = "phase-item" + (checked ? " completed" : "");
+                li.innerHTML = `
+                    <span class="phase-number">${phase.id}</span>
+                    <input type="checkbox" id="${phase.key}" ${checked ? "checked" : ""}>
+                    <label for="${phase.key}">Phase ${phase.id} — ${phase.label}</label>
+                `;
+                li.querySelector("input").addEventListener("change", (e) => {
+                    const s = loadState();
+                    s[phase.key] = e.target.checked;
+                    saveState(s);
+                    renderPhases();
+                    updateProgress();
+                });
+                list.appendChild(li);
+            });
+
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const state = loadState();
+            const completed = PHASES.filter(p => state[p.key]).length;
+            const total = PHASES.length;
+            const pct = Math.round((completed / total) * 100);
+
+            document.getElementById("progressBar").style.width = pct + "%";
+            document.getElementById("progressLabel").textContent =
+                `${completed} / ${total} phases complete — ${pct}%`;
+        }
+
+        // ══════════════════════════════════════════════════
+        // TAB 2: LEDGER INSPECTOR
+        // ══════════════════════════════════════════════════
+        function parseLedger() {
+            const input = document.getElementById("ledgerInput").value.trim();
+            if (!input) return;
+
+            let ledger;
+            try {
+                ledger = JSON.parse(input);
+            } catch (e) {
+                alert("Invalid JSON: " + e.message);
+                return;
+            }
+
+            renderLedgerInspector(ledger);
+            renderSidebarLedger(ledger);
+        }
+
+        function renderLedgerInspector(ledger) {
+            const output = document.getElementById("inspectorOutput");
+            output.style.display = "block";
+
+            // Session Info
+            document.getElementById("inspSessionInfo").innerHTML = `
+                <div class="inspector-item"><span class="dot">🆔</span> Session ID: <code>${ledger.session_id || "—"}</code></div>
+                <div class="inspector-item"><span class="dot">🎯</span> Goal Type: <strong>${ledger.goal_type || "—"}</strong></div>
+                <div class="inspector-item"><span class="dot">💬</span> Turn Count: <strong>${ledger.turn_count || 0}</strong></div>
+                <div class="inspector-item"><span class="dot">📊</span> Trust Score: <strong>${((ledger.trust_score || 0) * 100).toFixed(0)}%</strong></div>
+            `;
+
+            // Rules
+            const rules = ledger.rules || [];
+            document.getElementById("inspRules").innerHTML = rules.length
+                ? rules.map(r => `
+                    <div class="inspector-item">
+                        <span class="dot">${r.active !== false ? "🟢" : "⚪"}</span>
+                        <span class="flex-1">${r.text}</span>
+                        <span class="text-xs text-secondary">${r.source || ""}</span>
+                    </div>
+                `).join("")
+                : '<div class="text-sm text-secondary">No rules defined</div>';
+
+            // Assumptions
+            const assumptions = ledger.assumptions || [];
+            document.getElementById("inspAssumptions").innerHTML = assumptions.length
+                ? assumptions.map(a => `
+                    <div class="inspector-item">
+                        <span class="dot">${a.user_confirmed === true ? "✅" : a.user_confirmed === false ? "❌" : "❓"}</span>
+                        <span>${a.text}</span>
+                    </div>
+                `).join("")
+                : '<div class="text-sm text-secondary">No assumptions recorded</div>';
+
+            // Missing Info
+            const missing = ledger.missing_info || [];
+            document.getElementById("inspMissing").innerHTML = missing.length
+                ? missing.map(m => `<div class="inspector-item"><span class="dot">•</span> ${m.text}</div>`).join("")
+                : '<div class="text-sm text-secondary">No missing info logged</div>';
+
+            // Rubric
+            const rubric = ledger.rubric || {};
+            document.getElementById("inspRubric").innerHTML = `
+                <div class="inspector-item"><span class="dot">🎯</span> Edited by user: <strong>${rubric.is_edited_by_user ? "Yes" : "No"}</strong></div>
+                ${(rubric.criteria || []).map((c, i) => `
+                    <div class="inspector-item"><span class="dot">✎</span> Criterion ${i + 1}: ${c}</div>
+                `).join("")}
+            `;
+
+            // History
+            const history = ledger.interaction_history || [];
+            document.getElementById("inspHistory").innerHTML = history.length
+                ? history.map(t => `
+                    <div class="inspector-item" style="flex-direction:column; align-items:flex-start;">
+                        <div class="flex-row mb-1">
+                            <span class="badge" style="background:var(--surface-high);">Turn ${t.turn_index}</span>
+                            <span class="text-xs text-secondary">${t.role}</span>
+                        </div>
+                        <div class="text-sm">${(t.raw_input || "").substring(0, 120)}${(t.raw_input || "").length > 120 ? "..." : ""}</div>
+                    </div>
+                `).join("")
+                : '<div class="text-sm text-secondary">No interaction history</div>';
+        }
+
+        function renderSidebarLedger(ledger) {
+            const rules = ledger.rules || [];
+            const activeRules = rules.filter(r => r.active !== false);
+            document.getElementById("sidebarRuleCount").textContent = `(${activeRules.length})`;
+            document.getElementById("sidebarRules").innerHTML = activeRules.length
+                ? activeRules.map(r => `<div style="margin-bottom:4px;">・ ${r.text}</div>`).join("")
+                : "No rules";
+
+            const assumptions = ledger.assumptions || [];
+            document.getElementById("sidebarAssumptionCount").textContent = `(${assumptions.length})`;
+            document.getElementById("sidebarAssumptions").innerHTML = assumptions.length
+                ? assumptions.map(a => {
+                    const icon = a.user_confirmed === true ? "✅" : a.user_confirmed === false ? "❌" : "❓";
+                    return `<div style="margin-bottom:4px;">・ ${icon} ${a.text}</div>`;
+                }).join("")
+                : "—";
+
+            const missing = ledger.missing_info || [];
+            document.getElementById("sidebarMissing").textContent = `(${missing.length})`;
+            document.getElementById("sidebarMissingInfo").innerHTML = missing.length
+                ? missing.map(m => `<div style="margin-bottom:4px;">・ ${m.text}</div>`).join("")
+                : "—";
+
+            const trust = ledger.trust_score || 0;
+            const trustPct = Math.round(trust * 100);
+            const fill = document.getElementById("sidebarTrustFill");
+            const label = document.getElementById("sidebarTrustLabel");
+            const text = document.getElementById("sidebarTrustText");
+
+            fill.style.width = trustPct + "%";
+            label.textContent = trustPct + "%";
+
+            if (trust >= 0.75) {
+                fill.style.backgroundColor = "var(--claim-grounded)";
+                text.textContent = "High reliability";
+            } else if (trust >= 0.4) {
+                fill.style.backgroundColor = "var(--claim-contested)";
+                text.textContent = "Moderate — verify contested claims externally";
+            } else {
+                fill.style.backgroundColor = "var(--claim-unverified)";
+                text.textContent = trust > 0 ? "Low — verify all claims externally" : "No data";
+            }
+        }
+
+        function loadSampleLedger() {
+            const sample = {
+                session_id: "a1b2c3d4",
+                goal_type: "analytical",
+                rubric: {
+                    criteria: ["Accuracy of claims", "Coverage of counter-arguments", "Source attribution"],
+                    is_edited_by_user: true,
+                    version: 2
+                },
+                rubric_confirmed: true,
+                rules: [
+                    { id: "r1", text: "Analysis must remain vendor-neutral", source: "user", created_at: 0, active: true },
+                    { id: "r2", text: "Always cite sources when making factual claims", source: "user", created_at: 1, active: true },
+                    { id: "r3", text: "Prioritize open-source solutions", source: "inferred", created_at: 2, active: false }
+                ],
+                assumptions: [
+                    { id: "a1", text: "User is comparing cloud-native architectures", turn_index: 0, user_confirmed: true },
+                    { id: "a2", text: "Team size is mid-range (10-50 engineers)", turn_index: 1, user_confirmed: null }
+                ],
+                missing_info: [
+                    { id: "m1", text: "Specific cloud provider constraints not specified", turn_index: 0 },
+                    { id: "m2", text: "Budget limitations unknown", turn_index: 1 }
+                ],
+                interaction_history: [
+                    { turn_index: 0, role: "user", raw_input: "What are the pros and cons of microservices vs monolith?" },
+                    { turn_index: 1, role: "assistant", raw_input: "Compare Kubernetes orchestration approaches" }
+                ],
+                trust_score: 0.62,
+                turn_count: 2
+            };
+            document.getElementById("ledgerInput").value = JSON.stringify(sample, null, 2);
+            parseLedger();
+        }
+
+        function clearLedger() {
+            document.getElementById("ledgerInput").value = "";
+            document.getElementById("inspectorOutput").style.display = "none";
+            // Reset sidebar
+            document.getElementById("sidebarRuleCount").textContent = "(0)";
+            document.getElementById("sidebarRules").textContent = "No ledger loaded";
+            document.getElementById("sidebarAssumptionCount").textContent = "(0)";
+            document.getElementById("sidebarAssumptions").textContent = "—";
+            document.getElementById("sidebarMissing").textContent = "(0)";
+            document.getElementById("sidebarMissingInfo").textContent = "—";
+            document.getElementById("sidebarTrustFill").style.width = "0%";
+            document.getElementById("sidebarTrustLabel").textContent = "0%";
+            document.getElementById("sidebarTrustText").textContent = "No data";
+        }
+
+        // ══════════════════════════════════════════════════
+        // TAB 3: PIPELINE SIMULATOR
+        // ══════════════════════════════════════════════════
+        function simulatePipeline() {
+            const input = document.getElementById("pipelineInput").value.trim();
+            if (!input) return;
+
+            let response;
+            try {
+                response = JSON.parse(input);
+            } catch (e) {
+                alert("Invalid JSON: " + e.message);
+                return;
+            }
+
+            renderSimulatedResponse(response);
+        }
+
+        function renderSimulatedResponse(response) {
+            const output = document.getElementById("simulatorOutput");
+            output.style.display = "block";
+
+            const paragraphs = response.paragraphs || [];
+            const assumptions = response.assumptions || [];
+            const missingInfo = response.missing_info || [];
+
+            let html = '<div class="chat-container">';
+
+            // Render paragraphs
+            html += '<div class="card"><div class="card-header">Rendered Response</div>';
+            paragraphs.forEach((para, idx) => {
+                const stepBadge = para.step_type
+                    ? `<span class="badge badge-${para.step_type === 'established_fact' ? 'fact' : para.step_type === 'assumption' ? 'inferred' : para.step_type}">${para.step_type.replace('_', ' ')}</span>`
+                    : '';
+
+                html += `<div style="margin-bottom: 1rem;">`;
+                html += `<p>${para.text}</p>`;
+                html += `<div class="flex-row mt-1">${stepBadge}</div>`;
+
+                if (para.claims && para.claims.length) {
+                    html += '<div class="chat-claims mt-1">';
+                    para.claims.forEach(claim => {
+                        const cls = claim.classification || 'unverified';
+                        const badgeCls = cls === 'grounded' ? 'badge-grounded' : cls === 'contested' ? 'badge-contested' : 'badge-unverified';
+                        const icon = cls === 'grounded' ? '🟢' : cls === 'contested' ? '🟡' : '🔴';
+                        const tagBadge = claim.tag
+                            ? `<span class="badge badge-${claim.tag === 'established' ? 'fact' : claim.tag}">${claim.tag}</span>`
+                            : '';
+                        html += `<span class="badge ${badgeCls}">${icon} "${claim.text.substring(0, 50)}${claim.text.length > 50 ? '...' : ''}"</span>`;
+                    });
+                    html += '</div>';
+                }
+
+                if (idx < paragraphs.length - 1) html += '<hr class="divider">';
+                html += '</div>';
+            });
+            html += '</div>';
+
+            // Assumptions
+            if (assumptions.length) {
+                html += '<div class="card"><div class="card-header">🤔 Assumptions Extracted</div>';
+                assumptions.forEach(a => {
+                    html += `<div class="inspector-item"><span class="dot">❓</span> ${a}</div>`;
+                });
+                html += '</div>';
+            }
+
+            // Missing Info
+            if (missingInfo.length) {
+                html += '<div class="card"><div class="card-header">❓ Missing Information</div>';
+                missingInfo.forEach(m => {
+                    html += `<div class="inspector-item"><span class="dot">•</span> ${m}</div>`;
+                });
+                html += '</div>';
+            }
+
+            // Stats
+            const totalClaims = paragraphs.reduce((sum, p) => sum + (p.claims || []).length, 0);
+            html += `
+                <div class="card">
+                    <div class="card-header">📊 Pipeline Stats</div>
+                    <div class="inspector-item"><span class="dot">📝</span> Paragraphs: <strong>${paragraphs.length}</strong></div>
+                    <div class="inspector-item"><span class="dot">🏷️</span> Total Claims: <strong>${totalClaims}</strong></div>
+                    <div class="inspector-item"><span class="dot">🤔</span> Assumptions: <strong>${assumptions.length}</strong></div>
+                    <div class="inspector-item"><span class="dot">❓</span> Missing Info: <strong>${missingInfo.length}</strong></div>
+                </div>
+            `;
+
+            html += '</div>';
+            output.innerHTML = html;
+        }
+
+        function loadSamplePipeline() {
+            const sample = {
+                paragraphs: [
+                    {
+                        index: 0,
+                        text: "Python is one of the most widely used programming languages in the world, consistently ranking in the top 3 of the TIOBE Index and Stack Overflow Developer Survey.",
+                        claims: [
+                            { claim_id: "c1", text: "Python ranks in top 3 of TIOBE Index", tag: "established", classification: "grounded" },
+                            { claim_id: "c2", text: "Python ranks in top 3 of Stack Overflow survey", tag: "established", classification: "grounded" }
+                        ],
+                        step_type: "established_fact"
+                    },
+                    {
+                        index: 1,
+                        text: "Its popularity is primarily driven by its simplicity and readability, which makes it the ideal first language for beginners learning to program.",
+                        claims: [
+                            { claim_id: "c3", text: "Python's popularity is driven by simplicity", tag: "reasoned", classification: "contested" },
+                            { claim_id: "c4", text: "Python is the ideal first language for beginners", tag: "inferred", classification: "contested" }
+                        ],
+                        step_type: "inference"
+                    },
+                    {
+                        index: 2,
+                        text: "Python's Global Interpreter Lock (GIL) makes it fundamentally unsuitable for CPU-bound multi-threaded applications, limiting its use in high-performance computing.",
+                        claims: [
+                            { claim_id: "c5", text: "GIL makes Python unsuitable for CPU-bound multi-threading", tag: "reasoned", classification: "contested" },
+                            { claim_id: "c6", text: "Python is limited in high-performance computing", tag: "inferred", classification: "unverified" }
+                        ],
+                        step_type: "assumption"
+                    }
+                ],
+                assumptions: [
+                    "User is referring to CPython (the reference implementation)",
+                    "Comparison is against general-purpose languages, not domain-specific ones"
+                ],
+                missing_info: [
+                    "Specific use case or domain not specified",
+                    "Python version not specified (Python 3.12+ has GIL improvements)"
+                ]
+            };
+            document.getElementById("pipelineInput").value = JSON.stringify(sample, null, 2);
+            simulatePipeline();
+        }
+
+        function clearPipeline() {
+            document.getElementById("pipelineInput").value = "";
+            document.getElementById("simulatorOutput").style.display = "none";
+            document.getElementById("simulatorOutput").innerHTML = "";
+        }
+
+        // ══════════════════════════════════════════════════
+        // TAB SWITCHING
+        // ══════════════════════════════════════════════════
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelector(`.nav-tab[data-tab="${tabId}"]`).classList.add('active');
+        }
+
+        // ══════════════════════════════════════════════════
+        // INIT
+        // ══════════════════════════════════════════════════
+        renderPhases();
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+[theme]
+base = "dark"
+primaryColor = "#8AB4F8"              # Gemini blue accent
+backgroundColor = "#131314"            # BASE_BG — deepest charcoal
+secondaryBackgroundColor = "#1E1F20"   # SURFACE_LOW — sidebar, cards
+textColor = "#E2E2E2"                  # TEXT_PRIMARY — off-white
+font = "sans serif"                    # Falls back to system sans-serif
