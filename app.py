@@ -84,7 +84,7 @@ if user_input:
     # Add user message to history
     st.session_state["messages"].append({"role": "user", "content": user_input})
 
-    with st.chat_message("user", avatar="U"):
+    with st.chat_message("user"):
         st.markdown(user_input)
 
     # ── RUBRIC GENERATION (first turn only) ──
@@ -104,7 +104,7 @@ if user_input:
                 ledger.rubric_confirmed = True
 
     # ── MAIN GENERATION PIPELINE ──
-    with st.chat_message("assistant", avatar="✦"):
+    with st.chat_message("assistant"):
         with st.spinner("Generating and verifying response..."):
             # Step 1: Build prompt with ledger context
             snapshot = get_snapshot(ledger)

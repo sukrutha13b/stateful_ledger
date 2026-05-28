@@ -7,8 +7,7 @@ from ui.calibration import render_calibration_buttons
 def render_chat_history(messages: list[dict], ledger: Ledger):
     """Render all previous messages in the chat history."""
     for msg in messages:
-        avatar = "👤" if msg["role"] == "user" else "✨"
-        with st.chat_message(msg["role"], avatar=avatar):
+        with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
             # For assistant messages, render calibration buttons
