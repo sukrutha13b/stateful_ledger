@@ -61,11 +61,13 @@ def inject_gemini_css():
             font-size: 14px !important;
         }}
 
-        /* ── Hide Streamlit Elements ── */
-        header {{visibility: hidden;}}
+        /* ── Hide Streamlit Branding (keep sidebar toggle visible) ── */
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         .stDeployButton {{visibility: hidden;}}
+        header[data-testid="stHeader"] {{
+            background-color: transparent !important;
+        }}
 
         /* ── Main App Background & Layout ── */
         .stApp {{
