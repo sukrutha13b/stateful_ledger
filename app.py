@@ -16,7 +16,6 @@ from ui.sidebar import (
     render_reasoning_trace, render_import_export_buttons,
     render_gemini_sidebar
 )
-from ui.rubric import render_rubric_card
 from ui.chat import render_chat_history, render_response_block
 from ui.flags import render_contradiction_widget, render_tension_notice
 from ui.completeness import render_completeness_tracker
@@ -60,11 +59,6 @@ with col_main:
     st.title("Stateful Ledger")
     st.caption("Dual-layer verification engine for AI-generated responses")
 
-    # Render rubric card if pending
-    if st.session_state.get("pending_rubric") and not ledger.rubric_confirmed:
-        render_rubric_card(ledger.rubric, ledger.goal_type)
-        st.stop()  # Block until rubric is confirmed
-
     # Render chat history
     render_chat_history(st.session_state["messages"], ledger)
 
@@ -104,14 +98,12 @@ if user_input:
             if "error" not in rubric_result:
                 ledger.goal_type = rubric_result.get("goal_type", "exploratory")
                 ledger.rubric.criteria = rubric_result.get("rubric_criteria", [])
-                st.session_state["pending_rubric"] = True
-                st.rerun()
+                ledger.rubric_confirmed = True
             else:
                 # Fallback: use exploratory with default rubric
                 ledger.goal_type = "exploratory"
                 ledger.rubric.criteria = ["Accuracy", "Completeness", "Clarity"]
-                st.session_state["pending_rubric"] = True
-                st.rerun()
+                ledger.rubric_confirmed = True
 
     # ── MAIN GENERATION PIPELINE ──
     with st.chat_message("assistant", avatar="✦"):

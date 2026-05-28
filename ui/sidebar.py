@@ -142,6 +142,62 @@ def render_ledger_panel(ledger: Ledger):
 
     st.divider()
 
+    # ── Rubric Section ──
+    st.subheader(f"Rubric ({len(ledger.rubric.criteria)})")
+    for i, criterion in enumerate(ledger.rubric.criteria):
+        edit_key = f"editing_criterion_{i}"
+        col1, col2, col3 = st.columns([6, 1, 1])
+
+        with col1:
+            if st.session_state.get(edit_key, False):
+                new_text = st.text_input(
+                    "Edit criterion",
+                    value=criterion,
+                    key=f"criterion_text_{i}",
+                    label_visibility="collapsed",
+                )
+                if st.button("Save", key=f"save_criterion_{i}"):
+                    if new_text.strip():
+                        ledger.rubric.criteria[i] = new_text.strip()
+                        ledger.rubric.is_edited_by_user = True
+                        ledger.rubric.version += 1
+                        st.session_state[edit_key] = False
+                        st.toast("Criterion updated.")
+                        st.rerun()
+            else:
+                st.markdown(f"・ {criterion}")
+
+        with col2:
+            if st.button("✏️", key=f"edit_btn_crit_{i}"):
+                st.session_state[edit_key] = True
+                st.rerun()
+
+        with col3:
+            if st.button("✕", key=f"del_btn_crit_{i}"):
+                ledger.rubric.criteria.pop(i)
+                ledger.rubric.is_edited_by_user = True
+                ledger.rubric.version += 1
+                st.toast("Criterion removed.")
+                st.rerun()
+
+    # Add Criterion button
+    if st.button("+ Add Criterion", key="add_crit_btn"):
+        st.session_state["adding_crit"] = True
+        st.rerun()
+
+    if st.session_state.get("adding_crit", False):
+        new_crit_text = st.text_input("New criterion:", key="new_crit_text")
+        if st.button("Save New Criterion", key="save_new_crit"):
+            if new_crit_text.strip():
+                ledger.rubric.criteria.append(new_crit_text.strip())
+                ledger.rubric.is_edited_by_user = True
+                ledger.rubric.version += 1
+                st.session_state["adding_crit"] = False
+                st.toast("Criterion added.")
+                st.rerun()
+
+    st.divider()
+
     # ── Missing Info Section ──
     st.subheader(f"Missing Info ({len(ledger.missing_info)})")
     for info in ledger.missing_info:
