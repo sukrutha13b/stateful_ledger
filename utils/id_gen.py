@@ -1,4 +1,4 @@
-"""utils/id_gen.py — Generates short unique IDs for ledger objects."""
+"""utils/id_gen.py - Generates short unique IDs for ledger objects."""
 import uuid
 
 

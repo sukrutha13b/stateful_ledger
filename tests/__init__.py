@@ -1,1 +1,1 @@
-"""tests package — all pytest test suites."""
+"""tests package - all pytest test suites."""

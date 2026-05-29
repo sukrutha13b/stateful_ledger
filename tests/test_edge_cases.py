@@ -1,4 +1,4 @@
-"""tests/test_edge_cases.py — Integration and edge case tests (Phase 11).
+"""tests/test_edge_cases.py - Integration and edge case tests (Phase 11).
 
 Tests for graceful degradation when the LLM or APIs fail to produce
 expected outputs (e.g., malformed JSON, empty grounding, ambiguous prompts).

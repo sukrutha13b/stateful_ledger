@@ -1,0 +1,115 @@
+<mxfile host="Electron" agent="Mozilla/5.0">
+  <diagram id="stateful_ledger_v2" name="Architecture">
+    <mxGraphModel dx="1212" dy="736" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bg_ui" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#E1F5FE;strokeColor=#0288D1;align=center;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=10;" value="Streamlit Frontend Layer" vertex="1">
+          <mxGeometry height="700" width="280" x="20" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_state" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#F57C00;align=center;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=10;" value="State Management Layer" vertex="1">
+          <mxGeometry height="700" width="260" x="340" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="bg_api" parent="1" style="shape=rectangle;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#388E3C;align=center;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=10;" value="Gemini API Engine" vertex="1">
+          <mxGeometry height="700" width="500" x="640" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_in" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0288D1;fontSize=12;" value="&lt;b&gt;🗣️ User Prompt&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="200" x="60" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_chat" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0288D1;align=left;verticalAlign=top;spacingLeft=15;spacingTop=10;fontSize=12;" value="&lt;b&gt;💬 Main Chat Interface&lt;/b&gt;&lt;br&gt;&lt;hr&gt;- 🔴 Inferred Markers&lt;br&gt;- 🔵 Reasoned Markers&lt;br&gt;- ⚠️ Contradiction Alerts" vertex="1">
+          <mxGeometry height="110" width="200" x="60" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_btn_g" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;fontSize=12;" value="&lt;b&gt;[G] Verify Facts (Optional)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="200" x="60" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="ui_sidebar" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0288D1;align=left;verticalAlign=top;spacingLeft=15;spacingTop=10;fontSize=12;" value="&lt;b&gt;🎛️ Transparency Panel&lt;/b&gt;&lt;br&gt;&lt;hr&gt;1. Trust Indicator (Gauge)&lt;br&gt;2. Auto-generated Rubric&lt;br&gt;3. Active Ledger Rules" vertex="1">
+          <mxGeometry height="120" width="200" x="60" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="db_ledger" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#F57C00;align=left;verticalAlign=top;spacingLeft=20;spacingTop=40;fontSize=12;" value="&lt;b&gt;📚 Stateful Ledger&lt;/b&gt;&lt;br&gt;&lt;hr&gt;- Rules &amp;amp; Assumptions&lt;br&gt;- Missing Info Log&lt;br&gt;- Rubric State" vertex="1">
+          <mxGeometry height="190" width="200" x="370" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="api_assemble" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#388E3C;fontSize=12;" value="&lt;b&gt;Context Assembly&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="420" x="680" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api_gen" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#388E3C;fontSize=12;" value="&lt;b&gt;Pass 1: Generate Draft + Auto-Ledger&lt;/b&gt;&lt;br&gt;(Generates text AND infers initial rules/rubric)" vertex="1">
+          <mxGeometry height="60" width="420" x="680" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="api_l1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#388E3C;fontSize=12;" value="&lt;b&gt;Pass 2: Layer 1 Internal Audit&lt;/b&gt;&lt;br&gt;(Checks constraints, tags reasoning, outputs JSON)" vertex="1">
+          <mxGeometry height="60" width="420" x="680" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="api_l2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;dashed=1;fontSize=12;" value="&lt;b&gt;Layer 2: External Audit (MVP Future Scope)&lt;/b&gt;&lt;br&gt;(Claim Classification via Search Grounding)" vertex="1">
+          <mxGeometry height="60" width="200" x="680" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="tool_search" parent="1" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;dashed=1;fontSize=12;" value="&lt;b&gt;&amp;nbsp;Google Search&lt;/b&gt;" vertex="1">
+          <mxGeometry height="80" width="160" x="970" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="ui_in" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;fontStyle=1;strokeColor=#333333;" target="api_assemble" value="1. Submit">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="540" y="90" />
+              <mxPoint x="540" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="db_ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;fontStyle=1;strokeColor=#F57C00;" target="api_assemble" value="2. Inject Context">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="440" y="120" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="api_assemble" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;fontStyle=1;strokeColor=#388E3C;" target="api_gen" value="3. Prompt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="api_gen" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;fontStyle=1;strokeColor=#F57C00;" target="db_ledger" value="Auto-save rules &amp; rubric">
+          <mxGeometry relative="1" x="-0.0833" as="geometry">
+            <mxPoint x="1" as="offset" />
+            <Array as="points">
+              <mxPoint x="490" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="api_gen" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;fontStyle=1;strokeColor=#388E3C;" target="api_l1" value="4. Baseline Text">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="db_ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;fontStyle=1;strokeColor=#F57C00;" target="api_l1" value="Evaluate Constraints">
+          <mxGeometry relative="1" x="-0.0909" y="-20" as="geometry">
+            <mxPoint x="-1" as="offset" />
+            <Array as="points">
+              <mxPoint x="630" y="290" />
+              <mxPoint x="630" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="api_l1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;fontStyle=1;strokeColor=#0288D1;" target="ui_chat" value="5. Render Validated Output">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="890" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="db_ledger" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;fontStyle=1;strokeColor=#F57C00;" target="ui_sidebar" value="Sync Visuals">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="470" y="610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="ui_btn_g" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;fontStyle=1;strokeColor=#7B1FA2;" target="api_l2" value="6. User Clicks (Optional)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="api_l2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;startArrow=classic;endArrow=classic;dashed=1;fontSize=11;fontStyle=1;strokeColor=#7B1FA2;" target="tool_search" value="Fetch Facts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="api_l2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;fontStyle=1;strokeColor=#7B1FA2;" target="ui_chat" value="7. Update UI with fact tags">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="460" />
+              <mxPoint x="160" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

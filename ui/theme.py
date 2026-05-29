@@ -1,31 +1,31 @@
 import streamlit as st
 
-# ══════════════════════════════════════════════════════
-# GEMINI DESIGN LANGUAGE — DESIGN TOKENS
+# ======================================================
+# GEMINI DESIGN LANGUAGE - DESIGN TOKENS
 # Source: design language.md
-# ══════════════════════════════════════════════════════
+# ======================================================
 
-# ── Backgrounds & Surfaces ──
+# -- Backgrounds & Surfaces --
 BASE_BG = "#131314"              # Main canvas, empty states
 SURFACE_LOW = "#1E1F20"          # Sidebar, floating input bar, cards
 SURFACE_HIGH = "#282A2C"         # Hover states, tooltips
 
-# ── Typography ──
+# -- Typography --
 TEXT_PRIMARY = "#E2E2E2"         # User prompts, AI responses
 TEXT_SECONDARY = "#C4C7C5"       # Timestamps, placeholders, inactive icons
 
-# ── Brand Accents ──
+# -- Brand Accents --
 ACCENT_BLUE = "#8AB4F8"          # Primary interactive accent
 ACCENT_GREEN = "#1E8E3E"         # User avatar, grounded claims
 AMBIENT_INDIGO = "#1a1a2e"       # Ambient glow base
 AMBIENT_PURPLE = "#2d1b4e"       # Ambient glow blend
 
-# ── Claim Classification Colors ──
-CLAIM_GROUNDED = "#1E8E3E"       # 🟢 Green
-CLAIM_CONTESTED = "#F9AB00"      # 🟡 Amber
-CLAIM_UNVERIFIED = "#EA4335"     # 🔴 Red
+# -- Claim Classification Colors --
+CLAIM_GROUNDED = "#1E8E3E"       # (Green) Green
+CLAIM_CONTESTED = "#F9AB00"      # (Amber) Amber
+CLAIM_UNVERIFIED = "#EA4335"     # (Red) Red
 
-# ── Contradiction / Warning Colors ──
+# -- Contradiction / Warning Colors --
 WARNING_BG = "#3d2e00"           # Dark amber background for warnings
 WARNING_BORDER = "#F9AB00"       # Amber border
 ERROR_BG = "#3d1111"             # Dark red background for errors
@@ -33,12 +33,12 @@ ERROR_BORDER = "#EA4335"         # Red border
 INFO_BG = "#0d2137"              # Dark blue background for info
 INFO_BORDER = "#8AB4F8"          # Blue border
 
-# ── Shape ──
+# -- Shape --
 RADIUS_PILL = "50px"             # Fully rounded: inputs, primary buttons
 RADIUS_CARD = "12px"             # Soft rounded: cards, panels
 RADIUS_CARD_LG = "16px"          # Larger cards, expanders
 
-# ── Typography Sizes ──
+# -- Typography Sizes --
 FONT_DISPLAY = "32px"
 FONT_BODY = "16px"
 FONT_LABEL = "14px"
@@ -52,17 +52,17 @@ def inject_gemini_css():
     """
     st.markdown(f"""
     <style>
-        /* ── Import Google Sans & Material Symbols ── */
+        /* -- Import Google Sans & Material Symbols -- */
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
-        /* ── Global Font (exclude icon fonts) ── */
+        /* -- Global Font (exclude icon fonts) -- */
         html, body, [class*="st-"]:not([class*="material"]):not(span.material-symbols-rounded) {{
             font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
             font-size: 14px !important;
         }}
 
-        /* ── Protect Material Symbols icons ── */
+        /* -- Protect Material Symbols icons -- */
         .material-symbols-rounded,
         [data-testid="collapsedControl"] span,
         [data-testid="stSidebarCollapsedControl"] span {{
@@ -77,7 +77,7 @@ def inject_gemini_css():
             display: inline-block !important;
         }}
 
-        /* ── Hide Streamlit Branding (keep sidebar toggle visible) ── */
+        /* -- Hide Streamlit Branding (keep sidebar toggle visible) -- */
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         .stDeployButton {{visibility: hidden;}}
@@ -85,12 +85,12 @@ def inject_gemini_css():
             background-color: transparent !important;
         }}
 
-        /* ── Main App Background & Layout ── */
+        /* -- Main App Background & Layout -- */
         .stApp {{
             background-color: #131314;
         }}
 
-        /* ── Sidebar — always visible, collapsible ── */
+        /* -- Sidebar - always visible, collapsible -- */
         section[data-testid="stSidebar"] {{
             background-color: #1E1F20 !important;
             border-right: 1px solid #282A2C !important;
@@ -115,7 +115,7 @@ def inject_gemini_css():
             color: #E2E2E2;
         }}
 
-        /* ── Chat Input — Centered Pill Shape ── */
+        /* -- Chat Input - Centered Pill Shape -- */
         /* Outer wrapper: center the entire chat input bar */
         [data-testid="stChatInput"] {{
             max-width: 720px !important;
@@ -158,7 +158,7 @@ def inject_gemini_css():
             box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.15) !important;
         }}
 
-        /* ── Chat Messages ── */
+        /* -- Chat Messages -- */
         .stChatMessage {{
             background-color: {SURFACE_LOW} !important;
             border-radius: {RADIUS_CARD_LG} !important;
@@ -166,7 +166,7 @@ def inject_gemini_css():
             padding: 1rem 1.25rem !important;
         }}
 
-        /* ── Hide chat avatars (colored blocks) ── */
+        /* -- Hide chat avatars (colored blocks) -- */
         [data-testid="chatAvatarIcon-user"],
         [data-testid="chatAvatarIcon-assistant"],
         [data-testid="stChatMessageAvatar"],
@@ -176,7 +176,7 @@ def inject_gemini_css():
             display: none !important;
         }}
 
-        /* ── Buttons — Pill Shape ── */
+        /* -- Buttons - Pill Shape -- */
         .stButton > button {{
             border-radius: {RADIUS_PILL} !important;
             background-color: {SURFACE_HIGH} !important;
@@ -193,7 +193,7 @@ def inject_gemini_css():
             transform: translateY(-1px) !important;
         }}
 
-        /* ── Expanders — Rounded Card ── */
+        /* -- Expanders - Rounded Card -- */
         .streamlit-expanderHeader {{
             background-color: {SURFACE_LOW} !important;
             border-radius: {RADIUS_CARD} !important;
@@ -205,7 +205,7 @@ def inject_gemini_css():
             border-radius: 0 0 {RADIUS_CARD} {RADIUS_CARD} !important;
         }}
 
-        /* ── Forms — Rounded Card ── */
+        /* -- Forms - Rounded Card -- */
         [data-testid="stForm"] {{
             background-color: {SURFACE_LOW} !important;
             border-radius: {RADIUS_CARD_LG} !important;
@@ -213,7 +213,7 @@ def inject_gemini_css():
             padding: 1.5rem !important;
         }}
 
-        /* ── Text Inputs ── */
+        /* -- Text Inputs -- */
         .stTextInput > div > div > input {{
             background-color: {SURFACE_HIGH} !important;
             color: {TEXT_PRIMARY} !important;
@@ -221,29 +221,29 @@ def inject_gemini_css():
             border: 1px solid {SURFACE_HIGH} !important;
         }}
 
-        /* ── Progress Bar ── */
+        /* -- Progress Bar -- */
         .stProgress > div > div > div {{
             background: linear-gradient(90deg, {ACCENT_BLUE}, {ACCENT_GREEN}) !important;
             border-radius: {RADIUS_PILL} !important;
         }}
 
-        /* ── Toast / Alert styling ── */
+        /* -- Toast / Alert styling -- */
         .stAlert {{
             border-radius: {RADIUS_CARD} !important;
         }}
 
-        /* ── Dividers — subtle ── */
+        /* -- Dividers - subtle -- */
         hr {{
             border-color: {SURFACE_HIGH} !important;
             opacity: 0.5;
         }}
 
-        /* ── Captions / Secondary Text ── */
+        /* -- Captions / Secondary Text -- */
         .stCaption, small {{
             color: {TEXT_SECONDARY} !important;
         }}
 
-        /* ── Claim Badge Colors (used via st.markdown HTML) ── */
+        /* -- Claim Badge Colors (used via st.markdown HTML) -- */
         .badge-grounded {{
             background-color: {CLAIM_GROUNDED};
             color: white;
@@ -269,7 +269,7 @@ def inject_gemini_css():
             font-weight: 500;
         }}
 
-        /* ── Step Type Tags ── */
+        /* -- Step Type Tags -- */
         .tag-established {{
             color: {TEXT_SECONDARY};
             font-size: {FONT_CAPTION};
@@ -287,7 +287,7 @@ def inject_gemini_css():
             font-style: italic;
         }}
 
-        /* ── Ambient glow behind greeting ── */
+        /* -- Ambient glow behind greeting -- */
         .ambient-glow {{
             background: radial-gradient(
                 ellipse at center,

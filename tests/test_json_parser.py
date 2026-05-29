@@ -1,4 +1,4 @@
-"""tests/test_json_parser.py — Unit tests for utils/json_parser.py (Phase 3)."""
+"""tests/test_json_parser.py - Unit tests for utils/json_parser.py (Phase 3)."""
 import pytest
 
 from utils.json_parser import safe_parse_json

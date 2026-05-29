@@ -63,7 +63,7 @@ class TestCalibration:
         mock_st.rerun.assert_called_once()
 
     @patch("ui.calibration.st")
-    def test_record_feedback_recalculates_trust(self, mock_st):
+    def test_record_feedback_updates_ledger(self, mock_st):
         ledger = Ledger(interaction_history=[
             InteractionTurn(
                 turn_index=0,
@@ -72,8 +72,8 @@ class TestCalibration:
             )
         ])
         
-        assert ledger.trust_score == 0.0
-        
         _record_feedback(ledger, 0, 0, "accurate")
         
-        assert ledger.trust_score == 1.0
+        assert 0 in ledger.interaction_history[0].user_feedback.accurate
+        mock_st.toast.assert_called_with("Marked as accurate")
+        mock_st.rerun.assert_called_once()

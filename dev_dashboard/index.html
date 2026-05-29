@@ -961,17 +961,6 @@
                     <h3 style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem;">❓ Missing Info <span id="sidebarMissing">(0)</span></h3>
                     <div id="sidebarMissingInfo" class="text-xs text-secondary" style="padding-left:0.5rem;">—</div>
                 </div>
-                <hr class="divider" style="margin: 0.75rem 0;">
-                <div class="inspector-section">
-                    <h3 style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem;">📊 Trust Indicator</h3>
-                    <div class="trust-gauge">
-                        <div class="gauge-bar">
-                            <div class="gauge-fill" id="sidebarTrustFill" style="width:0%; background-color: var(--claim-unverified);"></div>
-                        </div>
-                        <span class="gauge-label" id="sidebarTrustLabel">0%</span>
-                    </div>
-                    <div class="text-xs text-secondary mt-1" id="sidebarTrustText">No data</div>
-                </div>
             </div>
         </aside>
     </div>
@@ -986,8 +975,8 @@
             { id: 5,  label: "Rubric Generation System", key: "phase_5" },
             { id: 6,  label: "Layer 1: Internal Logic Engine", key: "phase_6" },
             { id: 7,  label: "Layer 2: External Validation Engine", key: "phase_7" },
-            { id: 8,  label: "Sidebar: Ledger Panel & Trust", key: "phase_8" },
-            { id: 9,  label: "Calibration Feedback & Trust Score", key: "phase_9" },
+            { id: 8,  label: "Sidebar: Ledger Panel", key: "phase_8" },
+            { id: 9,  label: "Calibration Feedback", key: "phase_9" },
             { id: 10, label: "Main App Assembly & Chat Loop", key: "phase_10" },
             { id: 11, label: "Polish & Edge Case Hardening", key: "phase_11" },
         ];
@@ -1071,7 +1060,6 @@
                 <div class="inspector-item"><span class="dot">🆔</span> Session ID: <code>${ledger.session_id || "—"}</code></div>
                 <div class="inspector-item"><span class="dot">🎯</span> Goal Type: <strong>${ledger.goal_type || "—"}</strong></div>
                 <div class="inspector-item"><span class="dot">💬</span> Turn Count: <strong>${ledger.turn_count || 0}</strong></div>
-                <div class="inspector-item"><span class="dot">📊</span> Trust Score: <strong>${((ledger.trust_score || 0) * 100).toFixed(0)}%</strong></div>
             `;
 
             // Rules
@@ -1150,25 +1138,6 @@
                 ? missing.map(m => `<div style="margin-bottom:4px;">・ ${m.text}</div>`).join("")
                 : "—";
 
-            const trust = ledger.trust_score || 0;
-            const trustPct = Math.round(trust * 100);
-            const fill = document.getElementById("sidebarTrustFill");
-            const label = document.getElementById("sidebarTrustLabel");
-            const text = document.getElementById("sidebarTrustText");
-
-            fill.style.width = trustPct + "%";
-            label.textContent = trustPct + "%";
-
-            if (trust >= 0.75) {
-                fill.style.backgroundColor = "var(--claim-grounded)";
-                text.textContent = "High reliability";
-            } else if (trust >= 0.4) {
-                fill.style.backgroundColor = "var(--claim-contested)";
-                text.textContent = "Moderate — verify contested claims externally";
-            } else {
-                fill.style.backgroundColor = "var(--claim-unverified)";
-                text.textContent = trust > 0 ? "Low — verify all claims externally" : "No data";
-            }
         }
 
         function loadSampleLedger() {
@@ -1198,7 +1167,6 @@
                     { turn_index: 0, role: "user", raw_input: "What are the pros and cons of microservices vs monolith?" },
                     { turn_index: 1, role: "assistant", raw_input: "Compare Kubernetes orchestration approaches" }
                 ],
-                trust_score: 0.62,
                 turn_count: 2
             };
             document.getElementById("ledgerInput").value = JSON.stringify(sample, null, 2);
@@ -1215,9 +1183,6 @@
             document.getElementById("sidebarAssumptions").textContent = "—";
             document.getElementById("sidebarMissing").textContent = "(0)";
             document.getElementById("sidebarMissingInfo").textContent = "—";
-            document.getElementById("sidebarTrustFill").style.width = "0%";
-            document.getElementById("sidebarTrustLabel").textContent = "0%";
-            document.getElementById("sidebarTrustText").textContent = "No data";
         }
 
         // ══════════════════════════════════════════════════

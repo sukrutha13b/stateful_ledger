@@ -15,20 +15,16 @@ def _get_secret(key: str, default: str = "") -> str:
     return os.getenv(key, default)
 
 
-# ── API Configuration (model is a swappable parameter) ──
+# -- API Configuration --
 GEMINI_API_KEY: str = _get_secret("GEMINI_API_KEY", "")
-MODEL_NAME: str = _get_secret("GEMINI_MODEL", "gemini-2.5-flash-lite")  # Change via .env or st.secrets
-MAX_OUTPUT_TOKENS: int = 2048
-MAX_HISTORY_TURNS_IN_PROMPT: int = 10
 
-GOAL_TYPES: list[str] = ["analytical", "creative", "technical", "exploratory"]
+# -- Model Configuration --
+AUDIT_MODEL: str = _get_secret("AUDIT_MODEL", "gemini-2.5-flash")
+GENERATION_MODEL: str = _get_secret("GENERATION_MODEL", "gemini-2.5-flash")
+GROUNDING_MODEL: str = _get_secret("GROUNDING_MODEL", "gemini-2.5-flash")
 
-TRUST_WEIGHTS: dict[str, float] = {
-    "accurate": 1.0,
-    "uncertain": 0.5,
-    "inaccurate": 0.0,
-}
-
-CLAIM_CLASSIFICATIONS: list[str] = ["grounded", "contested", "unverified"]
-STEP_TYPES: list[str] = ["inference", "assumption", "established_fact"]
-CLAIM_TAGS: list[str] = ["established", "reasoned", "inferred"]
+# -- Thresholds --
+RUBRIC_GAP_THRESHOLD: int = int(_get_secret("RUBRIC_GAP_THRESHOLD", "50"))
+HIGH_SEVERITY_GAP: int = int(_get_secret("HIGH_SEVERITY_GAP", "30"))
+OVERCONFIDENCE_THRESHOLD: int = int(_get_secret("OVERCONFIDENCE_THRESHOLD", "80"))
+CONTESTED_RATIO_THRESHOLD: float = float(_get_secret("CONTESTED_RATIO_THRESHOLD", "0.3"))

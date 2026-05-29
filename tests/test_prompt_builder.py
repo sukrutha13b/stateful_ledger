@@ -1,4 +1,4 @@
-"""tests/test_prompt_builder.py — Unit tests for engine/prompt_builder.py (Phase 4)."""
+"""tests/test_prompt_builder.py - Unit tests for engine/prompt_builder.py (Phase 4)."""
 import json
 
 import pytest
@@ -12,9 +12,9 @@ from engine.prompt_builder import (
 )
 
 
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 # Rubric Prompt (Call #1a)
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 
 class TestBuildRubricPrompt:
     """build_rubric_prompt produces valid system + user prompts."""
@@ -41,9 +41,9 @@ class TestBuildRubricPrompt:
         assert "rubric_criteria" in system
 
 
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 # Main Prompt (Call #1b)
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 
 class TestBuildMainPrompt:
     """build_main_prompt injects ledger state correctly."""
@@ -97,9 +97,9 @@ class TestBuildMainPrompt:
         assert user == "Hello"
 
 
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 # Contradiction Prompt (Call #2)
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 
 class TestBuildContradictionPrompt:
     """build_contradiction_prompt embeds rules and response."""
@@ -131,9 +131,9 @@ class TestBuildContradictionPrompt:
         assert "severity" in system
 
 
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 # Classification Prompt (Call #3)
-# ──────────────────────────────────────────────────────
+# ------------------------------------------------------
 
 class TestBuildClassificationPrompt:
     """build_classification_prompt numbers claims with IDs."""
@@ -141,7 +141,7 @@ class TestBuildClassificationPrompt:
     @pytest.fixture
     def sample_claims(self):
         return [
-            {"claim_id": "c1", "text": "Water boils at 100°C"},
+            {"claim_id": "c1", "text": "Water boils at 100C"},
             {"claim_id": "c2", "text": "The moon is made of cheese"},
         ]
 
@@ -152,7 +152,7 @@ class TestBuildClassificationPrompt:
 
     def test_includes_claim_text(self, sample_claims):
         _, user = build_classification_prompt(sample_claims)
-        assert "Water boils at 100°C" in user
+        assert "Water boils at 100C" in user
         assert "The moon is made of cheese" in user
 
     def test_empty_claims_produces_valid_prompt(self):

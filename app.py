@@ -1,222 +1,130 @@
 import streamlit as st
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict
-from ledger.schema import (
-    Ledger, Assumption, MissingInfo, VerifiedResponse, Paragraph, Claim
-)
-from ledger.manager import init_ledger, get_snapshot, update_ledger
-from engine.gemini_client import call_gemini
-from engine.prompt_builder import build_main_prompt
-from engine.layer1 import (
-    run_contradiction_check, run_completeness_audit,
-    extract_assumptions_and_missing
-)
-from engine.layer2 import run_claim_classification, detect_overconfidence
-from ui.sidebar import (
-    render_ledger_panel, render_trust_indicator,
-    render_reasoning_trace, render_import_export_buttons
-)
-from ui.chat import render_chat_history, render_response_block
-from ui.flags import render_contradiction_widget, render_tension_notice
-from ui.completeness import render_completeness_tracker
-from utils.id_gen import generate_id
+import json
 
+from core.ledger import init_empty_ledger, update_ledger
+from core.context_assembly import assemble_context
+from gemini.client import GeminiClient
+from schemas.audit_schemas import AuditResult, RubricBootstrapSchema
+from gemini.prompts import AUDIT_SYSTEM_PROMPT, AUDIT_USER_PROMPT_TEMPLATE, RUBRIC_BOOTSTRAP_PROMPT
+from gemini.grounding_parser import parse_grounding_metadata
+from core.contradiction_router import flag_overconfidence
 
-# ── Page Config ──
+from ui.styles import apply_styles
+from ui.navigation_sidebar import render_navigation_sidebar
+from ui.chat_panel import render_chat_panel
+from ui.ledger_panel import render_ledger_panel
+
+# -- Global Config --
 st.set_page_config(
     page_title="Stateful Ledger",
-    layout="centered",
-    initial_sidebar_state="expanded",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# ── Session State Init ──
+apply_styles()
+
+# -- Init State --
 if "ledger" not in st.session_state:
-    st.session_state["ledger"] = init_ledger()
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
-if "pending_rubric" not in st.session_state:
-    st.session_state["pending_rubric"] = None
+    st.session_state["ledger"] = init_empty_ledger()
 
-
-# ── Sidebar ──
-with st.sidebar:
-    st.title("Gemini")
-    
-    if st.button("New chat", use_container_width=True):
-        st.session_state.clear()
-        st.rerun()
-
-    st.divider()
-    st.subheader("Recent")
-    
-    # Render actual user query history dynamically
-    user_queries = [msg["content"] for msg in st.session_state.get("messages", []) if msg["role"] == "user"]
-    
-    if not user_queries:
-        st.caption("No recent queries.")
-    else:
-        for i, query in enumerate(reversed(user_queries)):
-            display_text = query[:30] + "..." if len(query) > 30 else query
-            st.button(display_text, key=f"recent_query_{i}", use_container_width=True)
-
-
-# ── Main Area Layout ──
 ledger = st.session_state["ledger"]
 
-if ledger.turn_count == 0:
-    col_main = st.container()
-    col_dash = None
-else:
-    col_main, col_dash = st.columns([2.5, 1], gap="large")
+# -- Left Navigation Sidebar --
+render_navigation_sidebar()
 
-with col_main:
-    # Render chat history
-    render_chat_history(st.session_state["messages"], ledger)
+# -- Main Layout --
+col_chat, col_ledger = st.columns([65, 35], gap="large")
 
-if col_dash is not None:
-    with col_dash:
-        with st.expander("Session Ledger", expanded=False):
-            render_ledger_panel(ledger)
-            render_trust_indicator(ledger.trust_score)
-            st.divider()
-            render_import_export_buttons(ledger)
+# Grounding Trigger (Stage 6)
+client = GeminiClient()
+for turn in ledger.get("turn_history", []):
+    t_num = turn["turn_number"]
+    if st.session_state.get(f"run_grounding_{t_num}"):
+        with col_chat:
+            with st.spinner("Searching for grounding evidence..."):
+                from gemini.prompts import GROUNDING_PROMPT_TEMPLATE
+                
+                claims_text = turn.get("raw_response", "")
+                tags = turn.get("audit_result", {}).get("sentence_tags", [])
+                if tags:
+                    claims_text = "\n".join([f"- {t.get('text')}" for t in tags])
+                
+                prompt = GROUNDING_PROMPT_TEMPLATE.format(claims_list=claims_text)
+                grounding_raw = client.run_grounding(prompt)
+                
+                parsed_claims = parse_grounding_metadata(grounding_raw)
+                
+                turn["grounding_result"] = {
+                    "status": "completed",
+                    "claims": [c.model_dump() for c in parsed_claims] if parsed_claims else []
+                }
+                
+                contra = flag_overconfidence(turn.get("audit_result", {}), turn["grounding_result"], turn)
+                if contra:
+                    ledger["contradiction_log"].append(contra)
+                
+        st.session_state[f"run_grounding_{t_num}"] = False
+        st.rerun()
 
-            st.divider()
-            if st.button("Reset Session", key="reset_session_dash"):
-                st.session_state.clear()
-                st.rerun()
+# Render chat history panel
+render_chat_panel(col_chat)
 
-# ── Chat Input ──
-user_input = st.chat_input("Ask anything...")
+# Render ledger panel
+render_ledger_panel(col_ledger)
 
-# Handle auto-followup from completeness tracker
-if st.session_state.get("auto_followup"):
-    user_input = st.session_state.pop("auto_followup")
+# -- User Input & Pipeline --
+user_input = st.chat_input("Ask or clarify...")
 
 if user_input:
-    # Add user message to history
-    st.session_state["messages"].append({"role": "user", "content": user_input})
-
-    with st.chat_message("user"):
-        st.markdown(user_input)
-
-    # ── MAIN GENERATION PIPELINE ──
-    is_first_turn = (not ledger.rubric_confirmed and ledger.turn_count == 0)
-    with st.chat_message("assistant"):
-        with st.spinner("Generating and verifying response..."):
-            # Step 1: Build prompt with ledger context
-            snapshot = get_snapshot(ledger)
-            sys_prompt, usr_prompt = build_main_prompt(
-                user_input, snapshot, is_first_turn=is_first_turn
-            )
-
-            # Step 2: Call #1 — Main generation (+ rubric on first turn)
-            raw_response = call_gemini(sys_prompt, usr_prompt)
-
-            # Extract rubric from combined response on first turn
-            if is_first_turn:
-                if "error" not in raw_response:
-                    ledger.goal_type = raw_response.get("goal_type", "exploratory")
-                    ledger.rubric.criteria = raw_response.get("rubric_criteria", ["Accuracy", "Completeness", "Clarity"])
-                else:
-                    ledger.goal_type = "exploratory"
-                    ledger.rubric.criteria = ["Accuracy", "Completeness", "Clarity"]
-                ledger.rubric_confirmed = True
-
-            if "error" in raw_response:
-                st.error(f"Generation failed: {raw_response.get('error', 'Unknown error')}")
-                raw_text = raw_response.get("raw_text", "")
-                if raw_text:
-                    st.markdown(raw_text)
-                    st.warning("⚠️ Verification unavailable for this turn.")
-            else:
-                # Parse into VerifiedResponse
-                verified_response = _parse_verified_response(raw_response)
-
-                # Extract assumptions and missing info
-                assumption_texts, missing_texts = extract_assumptions_and_missing(raw_response)
-                new_assumptions = [
-                    Assumption(text=a, turn_index=ledger.turn_count)
-                    for a in assumption_texts
-                ]
-                new_missing = [
-                    MissingInfo(text=m, turn_index=ledger.turn_count)
-                    for m in missing_texts
-                ]
-
-                # Steps 3 & 4: Call #2 (contradiction) + Call #3 (classification) — run in parallel
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    f_contradiction = executor.submit(
-                        run_contradiction_check, user_input, verified_response, ledger
-                    )
-                    f_classification = executor.submit(
-                        run_claim_classification, verified_response
-                    )
-                    contradiction_flags = f_contradiction.result()
-                    verified_response = f_classification.result()
-
-                verified_response = detect_overconfidence(verified_response)
-
-                # Step 5: Completeness audit
-                completeness_gaps = run_completeness_audit(
-                    verified_response, ledger.rubric.criteria
+    with col_chat:
+        with st.chat_message("user"):
+            st.markdown(user_input)
+            
+        with st.chat_message("assistant"):
+            with st.spinner("Processing..."):
+                # Stage 0
+                if ledger["total_turns"] == 0:
+                    st.toast("Calibrating evaluation lens...")
+                    prompt = f"{RUBRIC_BOOTSTRAP_PROMPT}\n\nQuery: {user_input}"
+                    bootstrap = client.generate_structured(prompt, RubricBootstrapSchema)
+                    if bootstrap:
+                        ledger["rubric"]["dimensions"] = [{"id": f"dim_{i}", "name": d.name, "description": d.description} for i, d in enumerate(bootstrap.evaluation_dimensions)]
+                        ledger["rules"] = [{"rule_id": f"rule_{i}", "text": r, "status": "active", "type": "auto", "source_turn": 1, "violation_count": 0} for i, r in enumerate(bootstrap.initial_boundary_rules)]
+                        ledger["rubric"]["auto_generated"] = True
+                
+                ledger["total_turns"] += 1
+                turn_num = ledger["total_turns"]
+                
+                # Stage 1
+                context = assemble_context(ledger, user_input)
+                
+                # Stage 2
+                raw_response = client.generate(context, user_input)
+                
+                # Stage 3
+                audit_prompt = AUDIT_USER_PROMPT_TEMPLATE.format(
+                    raw_response_text=raw_response,
+                    active_rules=json.dumps([r for r in ledger["rules"] if r.get("status") == "active"]),
+                    active_assumptions=json.dumps([a for a in ledger["assumptions"] if a.get("status") == "active"]),
+                    rubric_dimensions=json.dumps(ledger["rubric"]["dimensions"])
                 )
-
-                # Step 6: Update ledger
-                update_ledger(
-                    ledger, user_input, verified_response,
-                    new_assumptions, new_missing,
-                    contradiction_flags, completeness_gaps
-                )
-
-                # ── RENDER ──
-
-                with col_main:
-                    # Handle contradictions
-                    direct_flags = [f for f in contradiction_flags if f.severity == "direct"]
-                    tension_flags = [f for f in contradiction_flags if f.severity == "tension"]
-
-                    for flag in direct_flags:
-                        if flag.resolution is None:
-                            render_contradiction_widget(flag, ledger, ledger.turn_count - 1)
-                            st.stop()
-
-                    for flag in tension_flags:
-                        render_tension_notice(flag)
-
-                    # Render response
-                    render_response_block(verified_response, ledger.turn_count - 1, ledger)
-
-                    # Render completeness tracker
-                    render_completeness_tracker(completeness_gaps, ledger.rubric.criteria)
-
-                    # Add to messages for chat history
-                    response_text = "\n\n".join(p.text for p in verified_response.paragraphs)
-                    st.session_state["messages"].append({
-                        "role": "assistant",
-                        "content": response_text,
-                        "turn_index": ledger.turn_count - 1,
-                    })
-                    st.rerun()
-
-
-def _parse_verified_response(raw: dict) -> VerifiedResponse:
-    """Parse the raw Gemini response dict into a VerifiedResponse dataclass."""
-    paragraphs = []
-    for p_data in raw.get("paragraphs", []):
-        claims = [
-            Claim(
-                claim_id=c.get("claim_id", generate_id()),
-                text=c.get("text", ""),
-                tag=c.get("tag", "inferred"),
-            )
-            for c in p_data.get("claims", [])
-        ]
-        para = Paragraph(
-            index=p_data.get("index", 0),
-            text=p_data.get("text", ""),
-            claims=claims,
-            step_type=p_data.get("step_type"),
-        )
-        paragraphs.append(para)
-    return VerifiedResponse(paragraphs=paragraphs)
+                audit_result = client.generate_structured(audit_prompt, AuditResult, system_instruction=AUDIT_SYSTEM_PROMPT)
+                audit_dict = audit_result.model_dump() if audit_result else {}
+                
+                # Stage 4
+                update_ledger(ledger, audit_dict, turn_num)
+                
+                # Stage 5 setup
+                turn_record = {
+                    "turn_id": f"turn_{turn_num}",
+                    "turn_number": turn_num,
+                    "timestamp": "",
+                    "user_prompt": user_input,
+                    "raw_response": raw_response,
+                    "audit_result": audit_dict,
+                    "grounding_result": {"status": "not_run", "claims": []},
+                    "internal_confidence_flag": None
+                }
+                ledger["turn_history"].append(turn_record)
+                
+    st.rerun()

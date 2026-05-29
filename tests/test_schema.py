@@ -1,4 +1,4 @@
-"""tests/test_schema.py — Unit tests for ledger/schema.py (Phase 2)."""
+"""tests/test_schema.py - Unit tests for ledger/schema.py (Phase 2)."""
 from dataclasses import asdict
 
 import pytest
@@ -23,8 +23,6 @@ class TestLedgerCreationDefaults:
     def test_turn_count_starts_at_zero(self):
         assert Ledger().turn_count == 0
 
-    def test_trust_score_starts_at_zero(self):
-        assert Ledger().trust_score == 0.0
 
     def test_lists_start_empty(self):
         ledger = Ledger()
@@ -114,7 +112,7 @@ class TestLedgerSerialisationRoundtrip:
         expected_keys = {
             "session_id", "goal_type", "rubric", "rubric_confirmed",
             "rules", "assumptions", "missing_info",
-            "interaction_history", "trust_score", "turn_count",
+            "interaction_history", "turn_count",
         }
         assert expected_keys == set(d.keys())
 

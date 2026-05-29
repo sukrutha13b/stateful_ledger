@@ -1,4 +1,4 @@
-"""utils/json_parser.py — Robust JSON extraction from raw LLM output.
+"""utils/json_parser.py - Robust JSON extraction from raw LLM output.
 
 Handles markdown code fences, preamble text, and attempts multiple
 extraction strategies before returning None.

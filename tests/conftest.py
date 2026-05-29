@@ -1,4 +1,4 @@
-"""tests/conftest.py — Shared pytest fixtures for the entire test suite.
+"""tests/conftest.py - Shared pytest fixtures for the entire test suite.
 
 NOTE: Fixtures that require Phase 2+ modules (ledger.schema, ledger.manager) are
 defined here but will only be importable once those modules are implemented.
@@ -7,12 +7,12 @@ Phase 1 tests (test_config.py) do not use any of these fixtures.
 import pytest
 
 
-# ── Phase 2+ fixtures (imported lazily to avoid breaking Phase 1 tests) ──
+# -- Phase 2+ fixtures (imported lazily to avoid breaking Phase 1 tests) --
 
 @pytest.fixture
 def empty_ledger():
     """Return a fresh, empty Ledger instance. Requires Phase 2."""
-    from ledger.schema import Ledger  # noqa: F401 — deferred import
+    from ledger.schema import Ledger  # noqa: F401 - deferred import
     from ledger.manager import init_ledger
     return init_ledger()
 

@@ -1,6 +1,5 @@
 import streamlit as st
 from ledger.schema import Ledger
-from ledger.trust import calculate_trust_score
 
 
 def render_calibration_buttons(
@@ -17,19 +16,19 @@ def render_calibration_buttons(
     already_rated = _is_already_rated(ledger, turn_index, para_index)
 
     if already_rated:
-        st.caption("✓ Rated")
+        st.caption(" Rated")
         return
 
     with col1:
-        if st.button("✅ Accurate", key=f"accurate_{turn_index}_{para_index}"):
+        if st.button("[PASS] Accurate", key=f"accurate_{turn_index}_{para_index}"):
             _record_feedback(ledger, turn_index, para_index, "accurate")
 
     with col2:
-        if st.button("❌ Inaccurate", key=f"inaccurate_{turn_index}_{para_index}"):
+        if st.button("[X] Inaccurate", key=f"inaccurate_{turn_index}_{para_index}"):
             _record_feedback(ledger, turn_index, para_index, "inaccurate")
 
     with col3:
-        if st.button("❓ Uncertain", key=f"uncertain_{turn_index}_{para_index}"):
+        if st.button(" Uncertain", key=f"uncertain_{turn_index}_{para_index}"):
             _record_feedback(ledger, turn_index, para_index, "uncertain")
 
 
@@ -53,9 +52,6 @@ def _record_feedback(
 
     fb = ledger.interaction_history[turn_index].user_feedback
     getattr(fb, feedback_type).append(para_index)
-
-    # Recalculate trust score
-    ledger.trust_score = calculate_trust_score(ledger)
 
     st.toast(f"Marked as {feedback_type}")
     st.rerun()

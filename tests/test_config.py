@@ -1,4 +1,4 @@
-"""tests/test_config.py — Phase 1: Verify all config constants are valid."""
+"""tests/test_config.py - Phase 1: Verify all config constants are valid."""
 import pytest
 import config
 

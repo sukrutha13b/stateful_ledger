@@ -1,4 +1,4 @@
-"""tests/test_gemini_client.py — Unit tests for engine/gemini_client.py (Phase 3).
+"""tests/test_gemini_client.py - Unit tests for engine/gemini_client.py (Phase 3).
 
 All tests mock the Gemini API to avoid real network calls.
 """
@@ -61,7 +61,7 @@ class TestCallGeminiAllRetriesFail:
 
 
 class TestCallGeminiJsonParseFailure:
-    """API returns non-JSON text → error with raw_text."""
+    """API returns non-JSON text  error with raw_text."""
 
     @patch.object(gc.client.models, "generate_content")
     def test_returns_error_with_raw_text(self, mock_gen):

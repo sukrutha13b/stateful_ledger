@@ -1,4 +1,4 @@
-"""ui/rubric.py — Streamlit rubric card for first-turn goal & criteria setup.
+"""ui/rubric.py - Streamlit rubric card for first-turn goal & criteria setup.
 
 On the first user message, the system infers a goal type and generates
 evaluation criteria. This module renders an editable form so the user
@@ -17,7 +17,7 @@ def render_rubric_card(rubric: Rubric, goal_type: str):
     ``rubric_confirmed`` is set to ``True``.
     """
     with st.form("rubric_form", clear_on_submit=False):
-        st.subheader(f"📋 Session Rubric — [{goal_type.capitalize()}]")
+        st.subheader(f" Session Rubric - [{goal_type.capitalize()}]")
         st.caption("This rubric will be used to evaluate response completeness.")
 
         updated_criteria = []
@@ -36,7 +36,7 @@ def render_rubric_card(rubric: Rubric, goal_type: str):
             key="rubric_new_criterion",
         )
 
-        submitted = st.form_submit_button("✅ Confirm & Proceed")
+        submitted = st.form_submit_button("[PASS] Confirm & Proceed")
 
         if submitted:
             if new_criterion.strip():
@@ -46,7 +46,7 @@ def render_rubric_card(rubric: Rubric, goal_type: str):
             rubric.version += 1
             st.session_state["ledger"].rubric = rubric
             st.session_state["ledger"].rubric_confirmed = True
-            st.toast("Rubric confirmed ✅")
+            st.toast("Rubric confirmed [PASS]")
             st.rerun()
 
 

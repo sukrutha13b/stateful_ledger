@@ -3,9 +3,9 @@ from ledger.schema import Claim, Paragraph
 
 
 BADGE_MAP = {
-    "grounded": ("🟢", "Confirmed by multiple sources"),
-    "contested": ("🟡", "Multiple valid positions exist"),
-    "unverified": ("🔴", "No grounding found — treat as model inference"),
+    "grounded": ("(Green)", "Confirmed by multiple sources"),
+    "contested": ("(Amber)", "Multiple valid positions exist"),
+    "unverified": ("(Red)", "No grounding found - treat as model inference"),
 }
 
 TAG_STYLES = {
@@ -17,7 +17,7 @@ TAG_STYLES = {
 
 def render_claim_badge(claim: Claim) -> str:
     """Return the emoji badge for a claim's classification."""
-    badge, _ = BADGE_MAP.get(claim.classification, ("🔴", "Unknown"))
+    badge, _ = BADGE_MAP.get(claim.classification, ("(Red)", "Unknown"))
     return badge
 
 
@@ -57,13 +57,13 @@ def render_contested_expander(claim: Claim, turn_index: int):
     """
     Render an expander for a contested claim showing alternative perspectives.
     """
-    with st.expander(f"🟡 Perspectives on: \"{claim.text[:60]}...\""):
+    with st.expander(f"(Amber) Perspectives on: \"{claim.text[:60]}...\""):
         st.markdown("""
         This claim is framed one way here.
-        2–3 alternative framings exist:
+        23 alternative framings exist:
         """)
         for i, perspective in enumerate(claim.perspectives, 1):
-            st.markdown(f"→ **Framing {i}:** {perspective}")
+            st.markdown(f" **Framing {i}:** {perspective}")
 
         st.caption("The system does not indicate which framing is correct.")
         st.button(
@@ -77,12 +77,12 @@ def render_overconfidence_flag(claim: Claim):
     Render a perspective flag for an overconfident claim.
     """
     st.warning(f"""
-    🟡 **PERSPECTIVE FLAG**
+    (Amber) **PERSPECTIVE FLAG**
 
     This claim is presented as settled, but it represents one position
     in an active debate. Alternative framings:
 
-    {"".join(f'→ {p}' + chr(10) for p in claim.perspectives)}
+    {"".join(f' {p}' + chr(10) for p in claim.perspectives)}
 
     The system does not indicate which framing is correct.
     """)

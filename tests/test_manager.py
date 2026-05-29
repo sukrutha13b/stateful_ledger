@@ -1,4 +1,4 @@
-"""tests/test_manager.py — Unit tests for ledger/manager.py (Phase 2)."""
+"""tests/test_manager.py - Unit tests for ledger/manager.py (Phase 2)."""
 from dataclasses import asdict
 
 import pytest
@@ -191,7 +191,6 @@ class TestExportLedger:
         assert isinstance(export, dict)
         assert len(export["rules"]) == 1
         assert "session_id" in export
-        assert "trust_score" in export
         assert "turn_count" in export
 
 
@@ -207,5 +206,4 @@ class TestImportLedger:
         assert imported.session_id == ledger.session_id
         assert len(imported.rules) == 1
         assert imported.rules[0].text == "Rule 1"
-        assert imported.trust_score == ledger.trust_score
 

@@ -1,4 +1,4 @@
-"""tests/test_rubric.py — Unit tests for ui/rubric.py (Phase 5).
+"""tests/test_rubric.py - Unit tests for ui/rubric.py (Phase 5).
 
 Tests cover the rubric processing logic and generation gate.
 The Streamlit render function (render_rubric_card) is not tested here

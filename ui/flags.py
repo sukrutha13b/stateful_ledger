@@ -15,7 +15,7 @@ def render_contradiction_widget(flag: ContradictionFlag, ledger: Ledger, turn_in
             break
 
     st.warning(f"""
-    ⚠️ **CONTRADICTION DETECTED**
+    [Warning] **CONTRADICTION DETECTED**
 
     This response conflicts with Rule: *"{rule_text}"*
 
@@ -25,31 +25,31 @@ def render_contradiction_widget(flag: ContradictionFlag, ledger: Ledger, turn_in
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("📝 Update the Rule", key=f"update_rule_{flag.flag_id}"):
+        if st.button(" Update the Rule", key=f"update_rule_{flag.flag_id}"):
             flag.resolution = "update_rule"
             flag.resolved_at = turn_index
             st.session_state[f"editing_rule_{flag.conflicting_rule_id}"] = True
             st.rerun()
 
     with col2:
-        if st.button("⏭️ Override for this response", key=f"override_{flag.flag_id}"):
+        if st.button(" Override for this response", key=f"override_{flag.flag_id}"):
             flag.resolution = "override_once"
             flag.resolved_at = turn_index
             st.toast("Override applied for this response.")
             st.rerun()
 
     with col3:
-        if st.button("🔀 Flag the Tension", key=f"tension_{flag.flag_id}"):
+        if st.button(" Flag the Tension", key=f"tension_{flag.flag_id}"):
             flag.resolution = "flag_tension"
             flag.resolved_at = turn_index
-            st.toast("Tension flagged — both positions will coexist.")
+            st.toast("Tension flagged - both positions will coexist.")
             st.rerun()
 
 
 def render_tension_notice(flag: ContradictionFlag):
     """Render a subtle tension notice prepended to the response."""
     st.info(f"""
-    🔀 **Tension Notice**: This response has a noted tension with an established rule.
+     **Tension Notice**: This response has a noted tension with an established rule.
     *"{flag.conflict_text}"*
     This tension has been acknowledged and both positions coexist.
     """)
