@@ -21,7 +21,25 @@ def render_tagged_response(sentence_tags: list[dict], raw_response: str, groundi
 
     # Helper to compare strings by removing non-alphanumeric characters
     def clean_str(s: str) -> str:
-        return re.sub(r'[^a-zA-Z0-9]', '', s).lower()
+        return re.sub(r'[^a-zA-Z0-9 ]', '', s).lower().strip()
+
+    def is_good_match(tag_text: str, line_text: str) -> bool:
+        """Require meaningful overlap, not just substring containment of tiny fragments."""
+        ct = clean_str(tag_text)
+        cl = clean_str(line_text)
+        if not ct or not cl:
+            return False
+        # For very short tag text, require near-exact match
+        if len(ct) < 20:
+            return ct == cl
+        # Check word-level overlap
+        tag_words = set(ct.split())
+        line_words = set(cl.split())
+        if not tag_words:
+            return False
+        overlap = len(tag_words & line_words)
+        # Require at least 50% of tag words to appear in the line
+        return overlap >= len(tag_words) * 0.5
 
     lines = raw_response.split("\n")
     processed_lines = []
@@ -41,7 +59,7 @@ def render_tagged_response(sentence_tags: list[dict], raw_response: str, groundi
                 text = claim.get("claim_text", "")
                 cls_type = claim.get("classification", "Unverified")
                 
-                if cleaned_line and (clean_str(text) in cleaned_line or cleaned_line in clean_str(text)):
+                if cleaned_line and is_good_match(text, line):
                     if cls_type == "Grounded":
                         css_class = "tag-grounded"
                         icon = ""
@@ -83,7 +101,7 @@ def render_tagged_response(sentence_tags: list[dict], raw_response: str, groundi
                 tag      = tag_obj.get("tag", "Inferred")
                 reasoning = tag_obj.get("reasoning", "")
                 
-                if cleaned_line and (clean_str(text) in cleaned_line or cleaned_line in clean_str(text)):
+                if cleaned_line and is_good_match(text, line):
                     css_class = "tag-reasoned" if tag == "Reasoned" else "tag-inferred"
                     icon      = "" if tag == "Reasoned" else "~"
                     tooltip   = reasoning.replace('"', '&quot;')
