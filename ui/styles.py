@@ -2,11 +2,7 @@ import streamlit as st
 
 def apply_styles():
     st.markdown("""<style>
-/* Safe column styling - prevents layout collapsing while keeping clear separation */
-[data-testid="column"]:nth-child(2) {
-    border-left: 1px solid #3C4043;
-    padding-left: 1.5rem;
-}
+/* Safe column styling handled by Streamlit natively */
 
 /* Premium Sentence tag styling with high-contrast colored text and soft background tint */
 .tag-reasoned {

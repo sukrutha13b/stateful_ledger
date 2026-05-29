@@ -3,8 +3,37 @@ import streamlit as st
 def render_ledger_panel(col_ledger):
     with col_ledger:
         ledger = st.session_state.get("ledger", {})
-        st.subheader(" LEDGER PANEL")
-        
+        # Header with Title and Collapse Arrow
+        col_title, col_close = st.columns([8, 2])
+        col_title.subheader(" LEDGER PANEL")
+        if col_close.button("→", help="Hide Ledger Panel"):
+            st.session_state["show_ledger"] = False
+            st.rerun()
+            
+        # Edit/View Ledger button
+        has_data = len(ledger.get("rules", [])) > 0 or len(ledger.get("rubric", {}).get("dimensions", [])) > 0
+        if has_data:
+            if "edit_ledger" not in st.session_state:
+                st.session_state["edit_ledger"] = False
+                
+            if st.button("🔧 Edit Ledger" if not st.session_state["edit_ledger"] else "👁 View Ledger", key="toggle_edit_ledger"):
+                st.session_state["edit_ledger"] = not st.session_state["edit_ledger"]
+                st.rerun()
+                
+            if st.session_state["edit_ledger"]:
+                import json
+                edited_rules = st.text_area("Rules (JSON)", value=json.dumps(ledger.get("rules", []), indent=2), height=200)
+                edited_assumptions = st.text_area("Assumptions (JSON)", value=json.dumps(ledger.get("assumptions", []), indent=2), height=200)
+                if st.button("Save Changes"):
+                    try:
+                        ledger["rules"] = json.loads(edited_rules)
+                        ledger["assumptions"] = json.loads(edited_assumptions)
+                        st.success("Saved!")
+                        st.session_state["edit_ledger"] = False
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+
         # Rubric
         with st.expander(" EVALUATION RUBRIC", expanded=True):
             dims = ledger.get("rubric", {}).get("dimensions", [])

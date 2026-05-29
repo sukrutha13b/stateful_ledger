@@ -56,16 +56,14 @@ def inject_gemini_css():
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
-        /* -- Global Font (exclude icon fonts) -- */
-        html, body, [class*="st-"]:not([class*="material"]):not(span.material-symbols-rounded) {{
+        /* -- Global Font (protects icon fonts by inheriting naturally) -- */
+        html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"] {{
             font-family: 'Google Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
             font-size: 14px !important;
         }}
 
         /* -- Protect Material Symbols icons -- */
-        .material-symbols-rounded,
-        [data-testid="collapsedControl"] span,
-        [data-testid="stSidebarCollapsedControl"] span {{
+        .material-symbols-rounded {{
             font-family: 'Material Symbols Rounded' !important;
             font-size: 24px !important;
             -webkit-font-feature-settings: 'liga' !important;
@@ -82,7 +80,7 @@ def inject_gemini_css():
         footer {{visibility: hidden;}}
         .stDeployButton {{visibility: hidden;}}
         header[data-testid="stHeader"] {{
-            background-color: transparent !important;
+            background-color: #131314 !important;
         }}
 
         /* -- Main App Background & Layout -- */

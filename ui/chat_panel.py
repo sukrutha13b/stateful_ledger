@@ -7,7 +7,14 @@ def render_chat_panel(col_chat):
         turn_history = ledger.get("turn_history", [])
         
         # Header Row
-        st.markdown(f"**STATEFUL LEDGER**")
+        if not st.session_state.get("show_ledger", True):
+            col_title, col_expand = st.columns([9, 1])
+            col_title.markdown(f"**STATEFUL LEDGER**")
+            if col_expand.button("←", help="Show Ledger Panel"):
+                st.session_state["show_ledger"] = True
+                st.rerun()
+        else:
+            st.markdown(f"**STATEFUL LEDGER**")
         st.divider()
         
         if not turn_history:

@@ -12,7 +12,7 @@ def render_contradiction_banner(ledger: dict, turn_number: int):
         color = "red" if severity == "High" else "orange"
         
         st.markdown(f"""
-        <div style="background-color: #fff3f3; border: 1px solid {color}; padding: 10px; border-radius: 5px; margin-top: 10px;">
+        <div style="background-color: rgba(249, 171, 0, 0.15); border: 1px solid {color}; padding: 10px; border-radius: 5px; margin-top: 10px; color: #E2E2E2;">
             <strong style="color: {color};">[Warning] INTERNAL TENSION DETECTED</strong><br>
             {c.get('description', '')}
         </div>
