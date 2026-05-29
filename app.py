@@ -36,7 +36,26 @@ ledger = st.session_state["ledger"]
 render_navigation_sidebar()
 
 # -- Main Layout --
-col_chat, col_ledger = st.columns([65, 35], gap="large")
+if "ledger_toggle" not in st.session_state:
+    st.session_state.ledger_toggle = True
+
+total_turns = ledger.get("total_turns", 0)
+
+is_ledger_visible = False
+if total_turns > 0:
+    col_spacer, col_toggle = st.columns([85, 15])
+    with col_toggle:
+        st.toggle("Show Ledger Panel", key="ledger_toggle")
+        
+    if st.session_state.ledger_toggle:
+        col_chat, col_ledger = st.columns([65, 35], gap="large")
+        is_ledger_visible = True
+    else:
+        col_chat = st.container()
+        col_ledger = st.container()
+else:
+    col_chat = st.container()
+    col_ledger = st.container()
 
 # Grounding Trigger (Stage 6)
 client = GeminiClient()
@@ -73,7 +92,8 @@ for turn in ledger.get("turn_history", []):
 render_chat_panel(col_chat)
 
 # Render ledger panel
-render_ledger_panel(col_ledger)
+if is_ledger_visible:
+    render_ledger_panel(col_ledger)
 
 # -- User Input & Pipeline --
 user_input = st.chat_input("Ask or clarify...")
