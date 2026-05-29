@@ -10,6 +10,7 @@ from gemini.grounding_parser import parse_grounding_metadata
 from core.contradiction_router import flag_overconfidence
 
 from ui.styles import apply_styles
+from ui.theme import inject_gemini_css
 from ui.navigation_sidebar import render_navigation_sidebar
 from ui.chat_panel import render_chat_panel
 from ui.ledger_panel import render_ledger_panel
@@ -21,7 +22,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+inject_gemini_css()
 apply_styles()
+
 
 # -- Init State --
 if "ledger" not in st.session_state:
@@ -83,7 +86,7 @@ if user_input:
         with st.chat_message("assistant"):
             with st.spinner("Processing..."):
                 # Stage 0
-                if ledger["total_turns"] == 0:
+                if ledger["total_turns"] == 0 or not ledger.get("rubric", {}).get("dimensions"):
                     st.toast("Calibrating evaluation lens...")
                     prompt = f"{RUBRIC_BOOTSTRAP_PROMPT}\n\nQuery: {user_input}"
                     bootstrap = client.generate_structured(prompt, RubricBootstrapSchema)
